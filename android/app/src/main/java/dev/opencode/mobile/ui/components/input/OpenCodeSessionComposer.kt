@@ -4,6 +4,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -953,7 +954,10 @@ private fun PromptEntryContent(
         }
     }
 
-    PickerChipsRow(state = state, onAction = onAction)
+    // custom: composer-collapse — в покое панель в одну строку, чипы появляются с фокусом поля.
+    AnimatedVisibility(visible = composerFocus.isFocused) {
+        PickerChipsRow(state = state, onAction = onAction)
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
