@@ -475,7 +475,7 @@ private fun TrailingActions(actions: List<OpenCodeTopBarAction>) {
                                 fraction = ring,
                                 // custom: 36 dp внутри 40-пиксельной кнопки, линия 1 dp.
                                 modifier = Modifier.size(36.dp),
-                                lineWidth = 1.dp,
+                                lineWidth = dev.opencode.mobile.BuildConfig.CUSTOM_RING_STROKE.toFloatOrNull()?.dp ?: 1.dp,
                             )
                         }
                     }

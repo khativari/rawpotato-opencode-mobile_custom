@@ -173,6 +173,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    // custom: толщина кольца контекста задаётся сборкой (-PringStroke=1.25).
+    defaultConfig {
+        buildConfigField(
+            "String",
+            "CUSTOM_RING_STROKE",
+            "\"${providers.gradleProperty("ringStroke").orNull ?: "1.0"}\"",
+        )
+    }
+
     buildFeatures {
         compose = true
         aidl = false

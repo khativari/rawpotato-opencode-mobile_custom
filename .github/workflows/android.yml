@@ -6,6 +6,10 @@ on:
         description: "Метка сборки: пакет .dbg_<tag>, имя «OC <tag>» (v2, v3, ...)"
         required: false
         default: ""
+      ring:
+        description: "Толщина кольца контекста, dp (1.0, 1.25, ...)"
+        required: false
+        default: "1.0"
   push:
     branches: [custom]
 
@@ -33,9 +37,10 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --stacktrace ${TAG:+-PcustomTag=$TAG}
+        run: ./gradlew :app:assembleDebug --stacktrace ${TAG:+-PcustomTag=$TAG} ${RING:+-PringStroke=$RING}
         env:
           TAG: ${{ inputs.tag }}
+          RING: ${{ inputs.ring }}
 
       - uses: actions/upload-artifact@v4
         with:
