@@ -59,6 +59,7 @@ import dev.opencode.mobile.domain.text.UiText
 import dev.opencode.mobile.network.ConnectionChangedException
 import dev.opencode.mobile.ui.changes.TurnDiffUnavailable
 import dev.opencode.mobile.domain.model.ModelCatalogStore
+import dev.opencode.mobile.custom.context.ContextRingState
 import dev.opencode.mobile.domain.model.ModelSelectionOption
 import dev.opencode.mobile.domain.model.NewSessionModelSelectionResolver
 import dev.opencode.mobile.domain.model.SessionModelSelectionStore
@@ -2278,6 +2279,13 @@ class SessionChatViewModel
                 messagesFromCache = timelineState.messagesFromCache,
                 contextUsageFraction =
                     sessionInfo.contextUsageFraction(
+                        timelineState.messages,
+                        composerState.composer.modelOptions,
+                        composerState.composer.selectedModel,
+                    ),
+                // custom: context-ring
+                contextRingFraction =
+                    ContextRingState.ringFraction(
                         timelineState.messages,
                         composerState.composer.modelOptions,
                         composerState.composer.selectedModel,

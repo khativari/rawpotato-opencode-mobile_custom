@@ -1014,6 +1014,8 @@ private fun SessionChatScreenBody(
                                     logChatAction(ProductAnalytics.Action.CHAT_OPEN_OVERFLOW)
                                     menuExpanded = true
                                 },
+                                // custom: context-ring — кольцо заполнения контекста вокруг «…».
+                                contextRing = uiState.contextRingFraction,
                             ),
                         ),
                     showDivider = true,

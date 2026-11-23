@@ -264,6 +264,8 @@ data class SessionChatUiState(
     val pendingSend: PendingSend? = null,
     val messagesFromCache: Boolean = false,
     val contextUsageFraction: Float? = null,
+    // custom: context-ring — доля до порога автокомпакции (не до лимита окна).
+    val contextRingFraction: Float? = null,
     val errorMessage: String? = null,
     val snackbar: SessionChatSnackbar? = null,
     val isLifecycleActionInFlight: Boolean = false,

@@ -47,6 +47,7 @@ import dev.opencode.mobile.R
 import dev.opencode.mobile.theme.LetterAccent
 import dev.opencode.mobile.theme.LocalOpenCodeDarkTheme
 import dev.opencode.mobile.theme.OpenCodeSmallShape
+import dev.opencode.mobile.custom.context.ContextRing
 import dev.opencode.mobile.theme.OpenCodeTheme
 import dev.opencode.mobile.theme.badgeColors
 import dev.opencode.mobile.theme.openCodeColor
@@ -111,6 +112,8 @@ sealed interface OpenCodeTopBarAction {
         val contentDescription: String,
         val enabled: Boolean = true,
         val onClick: () -> Unit,
+        // custom: context-ring — доля заполнения контекста до порога автокомпакции; null — без кольца.
+        val contextRing: Float? = null,
     ) : OpenCodeTopBarAction
 
     class Label(
@@ -459,12 +462,22 @@ private fun TrailingActions(actions: List<OpenCodeTopBarAction>) {
         actions.forEach { action ->
             when (action) {
                 is OpenCodeTopBarAction.Icon ->
-                    OpenCodeButton(
-                        variant = OpenCodeButtonVariant.IconCircle(action.imageVector, action.contentDescription),
-                        enabled = action.enabled,
-                        contrast = OpenCodeButtonContrast.Low,
-                        onClick = action.onClick,
-                    )
+                    // custom: context-ring — кольцо вокруг кнопки, не перехватывает нажатия.
+                    Box(contentAlignment = Alignment.Center) {
+                        OpenCodeButton(
+                            variant = OpenCodeButtonVariant.IconCircle(action.imageVector, action.contentDescription),
+                            enabled = action.enabled,
+                            contrast = OpenCodeButtonContrast.Low,
+                            onClick = action.onClick,
+                        )
+                        action.contextRing?.let { ring ->
+                            ContextRing(
+                                fraction = ring,
+                                modifier = Modifier.matchParentSize(),
+                                lineWidth = 2.dp,
+                            )
+                        }
+                    }
                 is OpenCodeTopBarAction.Label ->
                     OpenCodeButton(
                         variant = OpenCodeButtonVariant.CompactText(action.title),
