@@ -24,6 +24,8 @@ data class TimelineRow(
     val modelProviderId: String? = null,
     val modelId: String? = null,
     val contextInputTokens: Long? = null,
+    /** custom: context-ring — весь промпт (вход + кеш + выход) для кольца в шапке. */
+    val contextTotalTokens: Long? = null,
     val sentAtEpochMs: Long? = null,
     /** Set on a prompt steered into a running turn, pending or delivered. */
     val steer: SessionChatSteer? = null,
