@@ -473,9 +473,9 @@ private fun TrailingActions(actions: List<OpenCodeTopBarAction>) {
                         action.contextRing?.let { ring ->
                             ContextRing(
                                 fraction = ring,
-                                // custom: 36 dp внутри 40-пиксельной кнопки, линия 1.5 dp.
+                                // custom: 36 dp внутри 40-пиксельной кнопки, линия 1 dp.
                                 modifier = Modifier.size(36.dp),
-                                lineWidth = 1.5.dp,
+                                lineWidth = 1.dp,
                             )
                         }
                     }
