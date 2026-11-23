@@ -134,6 +134,12 @@ android {
         debug {
             // en-XA (long text) and ar-XB (right-to-left) pseudo-locales for layout checks.
             isPseudoLocalesEnabled = true
+            // custom: несколько наших сборок и Play-версия должны стоять рядом.
+            // `-PcustomTag=v3` даёт пакет dev.opencode.mobile.dbg_v3 и имя «OC v3»;
+            // без тега — dev.opencode.mobile.dbg и «OC custom».
+            val customTag = providers.gradleProperty("customTag").orNull?.takeIf { it.isNotBlank() }
+            applicationIdSuffix = ".dbg" + (customTag?.let { "_" + it.lowercase() } ?: "")
+            resValue("string", "app_name", "OC" + (customTag?.let { " $it" } ?: " custom"))
         }
         release {
             isMinifyEnabled = true

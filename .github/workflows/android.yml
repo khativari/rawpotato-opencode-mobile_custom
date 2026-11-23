@@ -1,6 +1,11 @@
 name: android
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Метка сборки: пакет .dbg_<tag>, имя «OC <tag>» (v2, v3, ...)"
+        required: false
+        default: ""
   push:
     branches: [custom]
 
@@ -28,10 +33,12 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --stacktrace
+        run: ./gradlew :app:assembleDebug --stacktrace ${TAG:+-PcustomTag=$TAG}
+        env:
+          TAG: ${{ inputs.tag }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: app-debug${{ inputs.tag && format('-{0}', inputs.tag) || '' }}
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
