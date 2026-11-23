@@ -85,6 +85,8 @@ import androidx.compose.ui.input.key.onInterceptKeyBeforeSoftKeyboard
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -842,6 +844,19 @@ private fun PromptEntryContent(
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp, vertical = 4.dp)
+                    // custom: тап по полю всегда заново просит фокус. После закрытия модального
+                    // листа (shell/фоновые работы) фокус остаётся «припаркованным» на невидимом
+                    // корне, и обычный тап фокус не возвращал — панель выглядела мёртвой.
+                    .pointerInput(focus) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                if (event.type == PointerEventType.Press) {
+                                    focus.requestFocus()
+                                }
+                            }
+                        }
+                    }
                     .focusRequester(focus.requester)
                     .onFocusChanged {
                         focus.updateFocused(it.isFocused)
