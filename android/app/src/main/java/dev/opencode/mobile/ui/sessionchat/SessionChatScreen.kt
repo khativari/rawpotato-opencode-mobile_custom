@@ -1836,6 +1836,13 @@ private fun SessionChatScreenBody(
                 activePicker != null ||
                 showDeleteConfirmation
         LaunchedEffect(screenSheetOpen) { viewModel.setScreenSheetOpen(screenSheetOpen) }
+        // custom: листы открываются отдельным окном и забирают фокус. После закрытия фокус
+        // оставался «в никуда» (в удалённом окне), и тап по полю ввода его уже не возвращал.
+        // Чистим фокус главного окна, как только все листы закрыты.
+        val windowFocusManager = androidx.compose.ui.platform.LocalFocusManager.current
+        LaunchedEffect(screenSheetOpen) {
+            if (!screenSheetOpen) windowFocusManager.clearFocus(force = true)
+        }
         SessionChatChipTimelineIntroModal(
             visible = uiState.chipTimelineIntroVisible && !screenSheetOpen,
             onEnable = viewModel::enableChipTimelineFromIntro,
