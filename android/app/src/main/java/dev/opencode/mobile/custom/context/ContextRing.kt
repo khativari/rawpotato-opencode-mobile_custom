@@ -36,8 +36,8 @@ fun ContextRing(
             label = "contextRing",
         )
     val color = contextRingColor(CompactionCeiling.severity(target))
-    val stroke = Stroke(width = lineWidth.toPx(), cap = StrokeCap.Round)
     Canvas(modifier = modifier) {
+        val stroke = Stroke(width = lineWidth.toPx(), cap = StrokeCap.Round)
         val diameter = size.minDimension - lineWidth.toPx()
         if (diameter <= 0f) return@Canvas
         val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
