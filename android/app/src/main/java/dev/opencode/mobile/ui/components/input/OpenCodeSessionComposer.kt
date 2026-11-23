@@ -955,7 +955,7 @@ private fun PromptEntryContent(
     }
 
     // custom: composer-collapse — в покое панель в одну строку, чипы появляются с фокусом поля.
-    AnimatedVisibility(visible = composerFocus.isFocused) {
+    AnimatedVisibility(visible = focus.isFocused) {
         PickerChipsRow(state = state, onAction = onAction)
     }
 
