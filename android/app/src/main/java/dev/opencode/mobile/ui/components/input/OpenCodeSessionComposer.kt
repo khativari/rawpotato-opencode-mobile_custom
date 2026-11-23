@@ -522,9 +522,11 @@ private fun OpenCodeSessionComposerContent(
         }
     val styleEdgeColor = openCodeComposerEdgeColor()
     val docked = style == SessionComposerStyle.Docked
+    // custom: без постоянной окантовки у панели ввода — остаётся только цветная рамка
+    // у запроса (permission/question), где она несёт смысл.
     val outline =
         when (style) {
-            SessionComposerStyle.OutlineFade -> BorderStroke(1.dp, requestEdgeColor ?: styleEdgeColor)
+            SessionComposerStyle.OutlineFade -> requestEdgeColor?.let { BorderStroke(1.dp, it) }
             SessionComposerStyle.Docked -> null
         }
     val announceBlocking =
