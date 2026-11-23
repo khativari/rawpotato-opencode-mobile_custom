@@ -176,6 +176,8 @@ android {
     buildFeatures {
         compose = true
         aidl = false
+        // custom: resValue для имени приложения по метке сборки.
+        resValues = true
         // BuildConfig.DEBUG gates logcat output and the Ktor Logging plugin (#755).
         buildConfig = true
         shaders = false
