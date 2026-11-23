@@ -853,7 +853,8 @@ private fun PromptEntryContent(
                             while (true) {
                                 val event = awaitPointerEvent(PointerEventPass.Initial)
                                 if (event.type == PointerEventType.Press) {
-                                    focus.requestFocus()
+                                    // runCatching: сорванный запрос фокуса не должен ронять приложение.
+                                    runCatching { focus.requestFocus() }
                                 }
                             }
                         }

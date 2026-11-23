@@ -165,6 +165,10 @@ android {
             ndk {
                 debugSymbolLevel = "NONE"
             }
+            // custom: release-подобная сборка с меткой — быстрая, ставится рядом.
+            val customTag = providers.gradleProperty("customTag").orNull?.takeIf { it.isNotBlank() }
+            applicationIdSuffix = ".rel" + (customTag?.let { "_" + it.lowercase() } ?: "")
+            resValue("string", "app_name", "OC" + (customTag?.let { " $it" } ?: " custom"))
         }
     }
     compileOptions {

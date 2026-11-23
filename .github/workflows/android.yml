@@ -10,6 +10,10 @@ on:
         description: "Толщина кольца контекста, dp (1.0, 1.25, ...)"
         required: false
         default: "1.0"
+      variant:
+        description: "AssembleBenchmark (release-like, быстрая) или AssembleDebug"
+        required: false
+        default: "Benchmark"
   push:
     branches: [custom]
 
@@ -37,13 +41,14 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --stacktrace ${TAG:+-PcustomTag=$TAG} ${RING:+-PringStroke=$RING}
+        run: ./gradlew :app:assemble${VARIANT:-Debug} --stacktrace ${TAG:+-PcustomTag=$TAG} ${RING:+-PringStroke=$RING}
         env:
           TAG: ${{ inputs.tag }}
           RING: ${{ inputs.ring }}
+          VARIANT: ${{ inputs.variant || 'Debug' }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: app-debug${{ inputs.tag && format('-{0}', inputs.tag) || '' }}
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
