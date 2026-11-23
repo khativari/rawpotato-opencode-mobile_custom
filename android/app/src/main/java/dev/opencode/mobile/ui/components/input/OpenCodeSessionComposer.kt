@@ -971,22 +971,9 @@ private fun PromptEntryContent(
         }
     }
 
-    // custom: composer-collapse — чипы только когда пользователь правит текст: поле в фокусе
-    // и клавиатура показана (или подключена аппаратная). Один фокус без клавиатуры — это ещё
-    // режим чтения, чипы там лишние.
-    AnimatedVisibility(
-        visible = focus.isFocused && (WindowInsets.isImeVisible || hardwareKeyboard),
-        enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(140)) +
-            androidx.compose.animation.expandVertically(
-                animationSpec = androidx.compose.animation.core.tween(180),
-                expandFrom = androidx.compose.ui.Alignment.Top,
-            ),
-        exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(100)) +
-            androidx.compose.animation.shrinkVertically(
-                animationSpec = androidx.compose.animation.core.tween(140),
-                shrinkTowards = androidx.compose.ui.Alignment.Top,
-            ),
-    ) {
+    // custom: composer-collapse — чипы появляются сразу, без собственной анимации: высоту
+    // панели ведёт клавиатура (IME), и вторая анимация поверх неё давала рывки.
+    if (focus.isFocused && (WindowInsets.isImeVisible || hardwareKeyboard)) {
         PickerChipsRow(state = state, onAction = onAction)
     }
 
