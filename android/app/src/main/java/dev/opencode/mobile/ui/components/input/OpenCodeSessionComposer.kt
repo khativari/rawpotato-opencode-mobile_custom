@@ -720,6 +720,7 @@ private fun DictationTakeover(
     )
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun PromptEntryContent(
     state: OpenCodeSessionComposerState.Prompt,
