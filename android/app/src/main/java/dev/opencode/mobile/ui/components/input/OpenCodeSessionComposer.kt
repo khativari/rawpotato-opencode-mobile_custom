@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
@@ -954,8 +955,12 @@ private fun PromptEntryContent(
         }
     }
 
-    // custom: composer-collapse — в покое панель в одну строку, чипы появляются с фокусом поля.
-    AnimatedVisibility(visible = focus.isFocused) {
+    // custom: composer-collapse — чипы только когда пользователь правит текст: поле в фокусе
+    // и клавиатура показана (или подключена аппаратная). Один фокус без клавиатуры — это ещё
+    // режим чтения, чипы там лишние.
+    AnimatedVisibility(
+        visible = focus.isFocused && (WindowInsets.isImeVisible || hardwareKeyboard),
+    ) {
         PickerChipsRow(state = state, onAction = onAction)
     }
 
