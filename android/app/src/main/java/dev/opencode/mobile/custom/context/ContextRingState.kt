@@ -20,9 +20,10 @@ object ContextRingState {
     ): Float? {
         val latest =
             messages.asReversed().firstOrNull {
-                it.role == MessageRole.Assistant && it.contextInputTokens != null
+                it.role == MessageRole.Assistant && (it.contextTotalTokens ?: it.contextInputTokens) != null
             } ?: return null
-        val used = latest.contextInputTokens ?: return null
+        // Весь промпт (input + cache + output) — так же считает экран «Контекст сессии».
+        val used = latest.contextTotalTokens ?: latest.contextInputTokens ?: return null
         val window = windowOf(latest, modelOptions) ?: selectedModel?.option?.contextLimitTokens
         return CompactionCeiling.ringFraction(used, window)
     }

@@ -976,6 +976,16 @@ private fun PromptEntryContent(
     // режим чтения, чипы там лишние.
     AnimatedVisibility(
         visible = focus.isFocused && (WindowInsets.isImeVisible || hardwareKeyboard),
+        enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(140)) +
+            androidx.compose.animation.expandVertically(
+                animationSpec = androidx.compose.animation.core.tween(180),
+                expandFrom = androidx.compose.ui.Alignment.Top,
+            ),
+        exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(100)) +
+            androidx.compose.animation.shrinkVertically(
+                animationSpec = androidx.compose.animation.core.tween(140),
+                shrinkTowards = androidx.compose.ui.Alignment.Top,
+            ),
     ) {
         PickerChipsRow(state = state, onAction = onAction)
     }

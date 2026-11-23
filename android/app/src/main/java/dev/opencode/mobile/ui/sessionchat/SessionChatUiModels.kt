@@ -1067,6 +1067,8 @@ data class SessionChatMessageItem(
     val modelProviderId: String? = null,
     val modelId: String? = null,
     val contextInputTokens: Long? = null,
+    // custom: context-ring — весь промпт (input + cache + output), как на экране «Контекст».
+    val contextTotalTokens: Long? = null,
     /** When the message was sent; user bubbles reveal it on a drag. */
     val sentAtEpochMs: Long? = null,
     /** Set on a prompt steered into a running turn, pending or delivered. */

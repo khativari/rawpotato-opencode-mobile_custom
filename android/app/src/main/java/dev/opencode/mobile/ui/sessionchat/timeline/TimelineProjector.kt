@@ -217,6 +217,7 @@ object TimelineProjector {
                 modelProviderId = item.modelProviderId,
                 modelId = item.modelId,
                 contextInputTokens = item.contextInputTokens,
+                contextTotalTokens = item.contextTotalTokens,
                 sentAtEpochMs = item.sentAtEpochMs,
                 steer = item.steer,
                 contentRevision = contentRevision,
@@ -246,6 +247,7 @@ object TimelineProjector {
             modelProviderId = row.modelProviderId,
             modelId = row.modelId,
             contextInputTokens = row.contextInputTokens,
+            contextTotalTokens = row.contextTotalTokens,
             sentAtEpochMs = row.sentAtEpochMs,
             steer = row.steer,
             goalKickoffId = row.goalKickoffId,
@@ -332,6 +334,8 @@ object TimelineProjector {
                 modelProviderId = message.modelProviderId,
                 modelId = message.modelId,
                 contextInputTokens = message.contextInputTokens,
+                // custom: context-ring — весь промпт, а не только некешированный вход.
+                contextTotalTokens = message.tokens?.total,
                 sentAtEpochMs = message.sentAtEpochMs,
                 // Carried so an unchanged row stays the same instance; [markSteers] decides.
                 steer = previous?.steer,
