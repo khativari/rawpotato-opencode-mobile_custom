@@ -73,6 +73,7 @@ fun openCodeDetailLeading(
 ): OpenCodeTopBarLeading = openCodeDetailLeading(control, onBack, badge = false)
 
 /** custom: тот же ведущий контрол, но с точкой «в другой сессии есть ответ». */
+@Composable
 fun openCodeDetailLeading(
     control: OpenCodeSplitPaneDetailControl?,
     onBack: () -> Unit,
