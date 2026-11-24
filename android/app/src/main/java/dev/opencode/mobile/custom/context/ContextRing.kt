@@ -68,7 +68,9 @@ fun ContextRing(
 @Composable
 fun contextRingColor(severity: CompactionCeiling.Severity): Color =
     when (severity) {
-        CompactionCeiling.Severity.Neutral -> openCodeColor("icon-strong-base")
+        // Как спиннер работы в пилюле: text-base, поэтому кольцо тянет тёплый/холодный
+        // оттенок выбранной темы, а не живёт само по себе.
+        CompactionCeiling.Severity.Neutral -> openCodeColor("text-base")
         CompactionCeiling.Severity.Warn -> openCodeColor("warning")
         CompactionCeiling.Severity.Error -> openCodeColor("error")
     }
