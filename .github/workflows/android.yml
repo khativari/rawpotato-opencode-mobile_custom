@@ -18,8 +18,6 @@ on:
         description: "Явная задача Gradle (например :app:compileDebugKotlin для быстрой проверки)"
         required: false
         default: ""
-  push:
-    branches: [custom]
 
 jobs:
   apk:
@@ -53,6 +51,7 @@ jobs:
           TASK: ${{ inputs.task }}
 
       - uses: actions/upload-artifact@v4
+        if: ${{ inputs.task == '' }}
         with:
           name: app-debug${{ inputs.tag && format('-{0}', inputs.tag) || '' }}
           path: android/app/build/outputs/apk/**/*.apk
