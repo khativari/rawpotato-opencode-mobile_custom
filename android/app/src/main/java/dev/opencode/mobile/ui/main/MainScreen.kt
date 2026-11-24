@@ -400,8 +400,8 @@ internal fun MainScreen(
     val worktreesEnabled = HomeDisplayPreferences.showsWorktrees
     val loaded = uiState as? MainScreenUiState.Loaded
     val homeSessions =
-        remember(loaded, worktreesEnabled, home.readStates) {
-            loaded?.homeSessions(worktreesEnabled, home.readStates).orEmpty()
+        remember(loaded, worktreesEnabled, readStates) {
+            loaded?.homeSessions(worktreesEnabled, readStates).orEmpty()
         }
     val chromeProjects =
         remember(loaded, homeSessions) {
@@ -1282,7 +1282,7 @@ internal fun MainScreenUiState.Loaded.worktreesSnapshot(): HomeWorktreesSnapshot
 
 /** Without project data, each section is its own project (tests and previews). */
 internal fun List<ProjectSectionUi>.toCrossProjectSessionListSessions(): List<SessionListSession> =
-    homeSessionListSessions(HomeProjectGrouping.group(map { it.worktree }, emptyMap()), this, readStates = readStates)
+    homeSessionListSessions(HomeProjectGrouping.group(map { it.worktree }, emptyMap()), this)
 
 /**
  * Home rows: each project's sessions from its added paths' lists and (v1) its other
