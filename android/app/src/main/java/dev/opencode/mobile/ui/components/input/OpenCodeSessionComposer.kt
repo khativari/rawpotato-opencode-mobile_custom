@@ -976,7 +976,17 @@ private fun PromptEntryContent(
 
     // custom: composer-collapse — чипы появляются сразу, без собственной анимации: высоту
     // панели ведёт клавиатура (IME), и вторая анимация поверх неё давала рывки.
-    if (focus.isFocused && (WindowInsets.isImeVisible || hardwareKeyboard)) {
+    // custom: считаем по ЦЕЛИ анимации клавиатуры, а не по текущему состоянию: при закрытии
+    // чипы уходят вместе с началом движения клавиатуры, а не через 300 мс, когда она уже ушла.
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val imeTargetVisible = WindowInsets.imeAnimationTarget.getBottom(density) > 0
+    AnimatedVisibility(
+        visible = focus.isFocused && (imeTargetVisible || hardwareKeyboard),
+        enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(120)) +
+            androidx.compose.animation.expandVertically(androidx.compose.animation.core.tween(220)),
+        exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) +
+            androidx.compose.animation.shrinkVertically(androidx.compose.animation.core.tween(220)),
+    ) {
         PickerChipsRow(state = state, onAction = onAction)
     }
 
