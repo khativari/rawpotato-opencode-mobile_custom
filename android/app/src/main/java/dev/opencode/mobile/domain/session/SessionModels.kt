@@ -80,6 +80,8 @@ data class SessionSummary(
     val statusStale: Boolean = false,
     /** v2 only: outcome of an unread finished run; null when read, running, or on v1. */
     val unreadOutcome: SessionIdleOutcome? = null,
+    /** custom: ручная метка «непрочитано» из локального хранилища. */
+    val isManuallyUnread: Boolean = false,
     /** Directory the session runs in. Null when the row should use the added project path. */
     val directory: String? = null,
 )

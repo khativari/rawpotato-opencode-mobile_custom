@@ -97,6 +97,8 @@ internal class HomeProjectList(
     private val scope: CoroutineScope,
     private val supportsSessionViewed: () -> Boolean,
     private val serverBaseUrl: () -> String,
+    /** custom: id сессий с ручной меткой «непрочитано» для текущего сервера. */
+    private val manuallyUnreadIds: () -> Set<String>,
     private val currentProfileId: () -> String,
     private val isConnected: () -> Boolean,
     /** Whether other saved addresses are still being tried. */
@@ -889,6 +891,7 @@ internal class HomeProjectList(
             // v2 servers own read state; the local per-device Ready ids stay a v1 fallback.
             serverReadState = supportsSessionViewed(),
             adapter = sessionDomainAdapter,
+            manuallyUnreadIds = manuallyUnreadIds(),
             rootOf = sessionAncestry::rootOf,
             rootSession = sessionAncestry::rootSession,
         )

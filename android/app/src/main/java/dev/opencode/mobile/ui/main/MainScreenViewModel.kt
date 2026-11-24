@@ -39,6 +39,8 @@ import dev.opencode.mobile.domain.session.Session
 import dev.opencode.mobile.domain.session.SessionDomainAdapter
 import dev.opencode.mobile.domain.session.SessionForkTitle
 import dev.opencode.mobile.domain.session.SessionIdleOutcome
+import dev.opencode.mobile.custom.readstate.ReadStateStore
+import dev.opencode.mobile.custom.readstate.readStateKey
 import dev.opencode.mobile.domain.session.SessionRepository
 import dev.opencode.mobile.domain.session.SessionSummary
 import dev.opencode.mobile.domain.sessioncache.SessionCache
@@ -61,6 +63,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -75,6 +79,8 @@ class MainScreenViewModel
         sessionRepository: SessionRepository,
         messageRepository: MessageRepository,
         private val connectionProfileStore: ConnectionProfileStore,
+        // custom: ручные метки «непрочитано» живут локально.
+        private val readStateStore: ReadStateStore,
         sessionDomainAdapter: SessionDomainAdapter,
         sessionLiveStore: SessionLiveStore,
         sessionStatusLiveStore: SessionStatusLiveStore,
@@ -92,6 +98,20 @@ class MainScreenViewModel
         homeWorktreesFeed: HomeWorktreesFeed = HomeWorktreesFeed(),
         newSessionDraftStore: NewSessionDraftStore = NewSessionDraftStore(),
     ) : ViewModel() {
+        /** custom: id сессий с ручной меткой «непрочитано» на текущем сервере. */
+        val manuallyUnreadIds: kotlinx.coroutines.flow.StateFlow<Set<String>> =
+            readStateStore
+                .observe()
+                .map { states ->
+                    val prefix = "$serverBaseUrl|"
+                    states
+                        .filterValues { it.manuallyUnread }
+                        .keys
+                        .filter { it.startsWith(prefix) }
+                        .map { it.removePrefix(prefix) }
+                        .toSet()
+                }.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
         private val _uiState =
             MutableStateFlow(
                 HomeUiState(
@@ -203,6 +223,7 @@ class MainScreenViewModel
                 scope = viewModelScope,
                 supportsSessionViewed = ::supportsSessionViewed,
                 serverBaseUrl = { serverBaseUrl },
+                manuallyUnreadIds = { manuallyUnreadIds.value },
                 currentProfileId = ::currentProfileId,
                 isConnected = { activeConnectionManager.current() != null },
                 addressCheckRunning = {
@@ -704,6 +725,27 @@ class MainScreenViewModel
                 ProductAnalytics.Action.HOME_FORK_STAY,
             )
             sessionActionsRegion.clearForkedOpenTarget()
+        }
+
+        /** custom: сессию открыли — снимаем ручную метку, точку и жирный заголовок. */
+        fun markSessionRead(sessionId: String) {
+            viewModelScope.launch {
+                readStateStore.markRead(readStateKey(serverBaseUrl, sessionId), System.currentTimeMillis())
+            }
+        }
+
+        /** custom: отметить непрочитанным из меню долгого тапа. */
+        fun markSessionUnread(sessionId: String) {
+            viewModelScope.launch {
+                readStateStore.markUnread(readStateKey(serverBaseUrl, sessionId))
+            }
+        }
+
+        /** custom: отметить выбранную в меню сессию непрочитанной. */
+        fun chooseMarkUnread() {
+            val target = sessionActionsRegion.state.value.target ?: return
+            sessionActionsRegion.dismissSheet()
+            markSessionUnread(target.sessionId)
         }
 
         fun chooseArchive() {

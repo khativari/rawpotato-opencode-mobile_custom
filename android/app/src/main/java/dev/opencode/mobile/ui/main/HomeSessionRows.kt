@@ -34,6 +34,8 @@ internal object HomeSessionRows {
         readyIds: Set<String>,
         serverReadState: Boolean,
         adapter: SessionDomainAdapter,
+        // custom: сессии с ручной меткой «непрочитано».
+        manuallyUnreadIds: Set<String> = emptySet(),
         rootOf: (String) -> String?,
         rootSession: (String) -> Session?,
     ): Result {
@@ -61,6 +63,7 @@ internal object HomeSessionRows {
                         // Waits for seeded status (iOS parity): a session running again with an
                         // older unviewed `time.idle` must not paint Done/Failed before its status is known.
                         unreadOutcome = if (activity.seeded) session.homeUnreadOutcome(serverReadState) else null,
+                        isManuallyUnread = session.id in manuallyUnreadIds,
                     )
                 }
         return Result(summaries = summaries, unresolvedBusyIds = unresolved)

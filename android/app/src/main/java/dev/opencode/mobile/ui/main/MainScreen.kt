@@ -125,6 +125,8 @@ data class HomeSessionActionsCallbacks(
     val onForkOpen: () -> Unit = {},
     val onForkStay: () -> Unit = {},
     val onChooseArchive: () -> Unit = {},
+    /** custom: отметить сессию непрочитанной. */
+    val onChooseMarkUnread: () -> Unit = {},
     val onChooseDelete: () -> Unit = {},
     val onConfirmDelete: () -> Unit = {},
     val onDismissDeleteConfirm: () -> Unit = {},
@@ -197,6 +199,7 @@ fun MainScreen(
                 onForkOpen = viewModel::chooseForkOpen,
                 onForkStay = viewModel::chooseForkStay,
                 onChooseArchive = viewModel::chooseArchive,
+                onChooseMarkUnread = viewModel::chooseMarkUnread,
                 onChooseDelete = viewModel::chooseDelete,
                 onConfirmDelete = viewModel::confirmDelete,
                 onDismissDeleteConfirm = viewModel::dismissDeleteConfirm,
@@ -810,6 +813,12 @@ private fun HomeSessionActions(
             startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.ContentCopy),
             onClick = callbacks.onChooseFork,
         )
+        // custom: вернуть сессию в «непрочитано».
+        OpenCodeBottomSheetEntry(
+            title = stringResource(R.string.custom_mark_unread),
+            startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.RadioButtonUnchecked),
+            onClick = callbacks.onChooseMarkUnread,
+        )
         if (state.canArchive) {
             OpenCodeBottomSheetEntry(
                 title = stringResource(R.string.home_session_actions_archive),
@@ -977,6 +986,8 @@ private fun HomeProjectsContent(
             screenId = ProductAnalytics.Screen.HOME,
             actionId = ProductAnalytics.Action.HOME_OPEN_SESSION,
         )
+        // custom: открыли сессию — она прочитана.
+        viewModel.markSessionRead(session.id)
         onSessionClick(
             SessionOpenTarget(
                 sessionId = session.id,
@@ -1295,6 +1306,8 @@ private data class HomeRowSource(
             subtitle = listedIn,
             directory = directory,
             status = session.toSessionListStatus(),
+            // custom: непрочитанный финиш сервера или ручная метка.
+            unread = session.unreadOutcome != null || session.isManuallyUnread,
             caption = session.updatedAtEpochMs?.let(RelativeTimeFormatting::format) ?: UiText.verbatim(""),
             updatedAtEpochMs = session.updatedAtEpochMs,
             retryAttempt = session.retryAttempt(),

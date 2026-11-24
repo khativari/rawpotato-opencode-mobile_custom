@@ -99,6 +99,8 @@ data class SessionListSession(
     val updatedAtEpochMs: Long? = null,
     /** Retry attempt shown with the Retrying chip, e.g. "Retrying · 2". */
     val retryAttempt: Int? = null,
+    /** custom: непрочитанный финиш или ручная метка — точка и жирный заголовок. */
+    val unread: Boolean = false,
     /** Cached activity that has not been confirmed by REST yet. */
     val statusStale: Boolean = false,
     /**
@@ -864,7 +866,8 @@ private fun SessionListRowContent(
             StartDecorator.Letter(
                 character = session.letter,
                 accent = session.letterAccent,
-                statusDot = if (showStatusDot) status.tone else null,
+                // custom: точка непрочитанного, когда статус ничего своего не показывает.
+                statusDot = if (showStatusDot) status.tone else if (session.unread) OpenCodeListItemStatusTone.Interactive else null,
             ),
         selected = selected,
         onClick = { onSessionSelected(session) },
@@ -891,14 +894,15 @@ private fun SessionListCompactRow(
         titleHighlight = titleHighlight,
         variant = OpenCodeListItemVariant.Compact,
         path = session.compactPath(removedNote = stringResource(R.string.session_list_worktree_removed)),
-        titleEmphasized = session.status.isUnreadFinish,
+        titleEmphasized = session.status.isUnreadFinish || session.unread,
         status = active,
         caption = session.caption.resolve().takeIf { it.isNotEmpty() },
         startDecorator =
             StartDecorator.Tile(
                 character = session.letter,
                 accent = session.letterAccent,
-                statusDot = active?.tone,
+                // custom: точка непрочитанного не спорит со статусом работы.
+                statusDot = active?.tone ?: if (session.unread) OpenCodeListItemStatusTone.Interactive else null,
                 pulsing = session.status == SessionListStatus.Running && !session.statusStale,
             ),
         selected = selected,
