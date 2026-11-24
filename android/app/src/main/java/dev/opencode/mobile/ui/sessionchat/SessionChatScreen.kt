@@ -319,6 +319,8 @@ private fun SessionChatScreenBody(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // custom: точка на «назад», когда в другой сессии есть непрочитанный ответ.
+    val otherSessionsUnread by viewModel.otherSessionsUnread.collectAsStateWithLifecycle()
     // After `session.moved` the route still names the old directory; actions follow the session.
     val currentWorktree = uiState.worktree.ifEmpty { worktree }
     val attachmentSources = uiState.composer.attachmentSources
@@ -1012,7 +1014,10 @@ private fun SessionChatScreenBody(
                             uiState.connectionStatus.toOpenCodeSessionConnectionStatus(),
                         ),
                     leading =
-                        openCodeDetailLeading(detailControl) {
+                        openCodeDetailLeading(
+                            detailControl,
+                            badge = otherSessionsUnread,
+                        ) {
                             logChatAction(ProductAnalytics.Action.CHAT_BACK)
                             onNavigateBack()
                         },

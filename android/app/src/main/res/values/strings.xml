@@ -1802,4 +1802,8 @@
     <string name="whats_new_settings_subtitle">Release notes for every version</string>
     <string name="custom_mark_unread">Mark unread</string>
     <string name="custom_mark_read">Mark read</string>
+    <string name="custom_selection_select">Select sessions</string>
+    <string name="custom_selection_count">Selected %1$d</string>
+    <string name="custom_selection_close">Exit selection</string>
+    <string name="custom_batch_failed">Failed for %1$d</string>
 </resources>

@@ -745,6 +745,87 @@ class MainScreenViewModel
             }
         }
 
+        /** custom: войти в режим выделения с этой сессией. */
+        fun enterSelection(sessionId: String) {
+            _uiState.update { it.copy(selection = it.selection.enter(sessionId)) }
+        }
+
+        /** custom: переключить сессию в режиме выделения. */
+        fun toggleSelection(sessionId: String) {
+            _uiState.update { it.copy(selection = it.selection.toggle(sessionId)) }
+        }
+
+        /** custom: выйти из режима выделения. */
+        fun clearSelection() {
+            _uiState.update { it.copy(selection = it.selection.clear()) }
+        }
+
+        /** custom: выделить всё, что сейчас видно в списке. */
+        fun selectAllSessions(ids: Collection<String>) {
+            _uiState.update { it.copy(selection = it.selection.selectAll(ids)) }
+        }
+
+        /** custom: пометить прочитанными все выделенные. */
+        fun batchMarkRead() {
+            val ids = _uiState.value.selection.ids
+            if (ids.isEmpty()) return
+            viewModelScope.launch {
+                ids.forEach { id -> readStateStore.markRead(readStateKey(serverBaseUrl, id), System.currentTimeMillis()) }
+            }
+            clearSelection()
+        }
+
+        /** custom: пометить непрочитанными все выделенные. */
+        fun batchMarkUnread() {
+            val ids = _uiState.value.selection.ids
+            if (ids.isEmpty()) return
+            viewModelScope.launch {
+                ids.forEach { id -> readStateStore.markUnread(readStateKey(serverBaseUrl, id)) }
+            }
+            clearSelection()
+        }
+
+        /** custom: убрать все выделенные в архив; [directories] — куда слать запрос по каждой. */
+        fun batchArchive(directories: Map<String, String?>) {
+            runBatch(directories) { id, directory ->
+                sessionRepository.archiveSession(id = id, directory = directory)
+            }
+        }
+
+        /** custom: удалить все выделенные. */
+        fun batchDelete(directories: Map<String, String?>) {
+            runBatch(directories) { id, directory ->
+                sessionRepository.deleteSession(id = id, directory = directory)
+            }
+        }
+
+        private fun runBatch(
+            directories: Map<String, String?>,
+            call: suspend (String, String?) -> Unit,
+        ) {
+            val ids = _uiState.value.selection.ids
+            if (ids.isEmpty()) return
+            clearSelection()
+            viewModelScope.launch {
+                val failed =
+                    ids.count { id ->
+                        runCatching { call(id, directories[id]) }.isFailure
+                    }
+                if (failed > 0) {
+                    _uiState.update {
+                        it.copy(snackbar = HomeSnackbar.batchFailed(failed))
+                    }
+                }
+            }
+        }
+
+        /** custom: из меню долгого тапа войти в режим выделения. */
+        fun chooseSelection() {
+            val target = sessionActionsRegion.state.value.target ?: return
+            sessionActionsRegion.dismissSheet()
+            enterSelection(target.sessionId)
+        }
+
         /** custom: отметить выбранную в меню сессию прочитанной. */
         fun chooseMarkRead() {
             val target = sessionActionsRegion.state.value.target ?: return
@@ -870,6 +951,8 @@ data class HomeUiState(
     val isRefreshing: Boolean = false,
     val snackbar: HomeSnackbar? = null,
     val sessionActions: HomeSessionActionsUiState = HomeSessionActionsUiState(),
+    /** custom: режим массового выделения сессий. */
+    val selection: dev.opencode.mobile.custom.selection.SelectionState = dev.opencode.mobile.custom.selection.SelectionState(),
     /** custom: локальное состояние «прочитано» по сессиям текущего сервера. */
     val readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
     /** Home menu's Archived sessions entry; null on servers that cannot restore archived sessions. */
@@ -900,7 +983,16 @@ data class HomeSnackbar(
     val text: UiText,
     val variant: OpenCodeSnackbarVariant = OpenCodeSnackbarVariant.Default,
     val id: Long = System.nanoTime(),
-)
+) {
+    companion object {
+        /** custom: пачечная операция не прошла по части сессий. */
+        fun batchFailed(failed: Int): HomeSnackbar =
+            HomeSnackbar(
+                text = UiText.resource(R.string.custom_batch_failed, failed),
+                variant = OpenCodeSnackbarVariant.Error,
+            )
+    }
+}
 
 data class HomeServersChrome(
     /** The active profile's name, verbatim, else "Sessions". */

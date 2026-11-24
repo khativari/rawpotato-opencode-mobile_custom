@@ -447,7 +447,36 @@ class SessionChatViewModel
         private var pendingSend: PendingSend? = null
         private var armedSendAcceptance: ArmedSendAcceptance? = null
 
+        /** custom: в другой сессии есть непрочитанный ответ — точка на кнопке «назад». */
+        private val _otherSessionsUnread = MutableStateFlow(false)
+        val otherSessionsUnread: kotlinx.coroutines.flow.StateFlow<Boolean> = _otherSessionsUnread.asStateFlow()
+
+        private fun refreshOtherSessionsUnread() {
+            viewModelScope.launch {
+                val current = uiState.value.sessionId
+                if (current.isBlank()) return@launch
+                val serverKey = activeConnectionManager.current()?.baseUrl.orEmpty()
+                val states = runCatching { readStateStore.observe().first() }.getOrDefault(emptyMap())
+                val sessions = runCatching { sessionRepository.listSessions() }.getOrDefault(emptyList())
+                _otherSessionsUnread.value =
+                    sessions.any { session ->
+                        session.id != current &&
+                            (
+                                states[dev.opencode.mobile.custom.readstate.readStateKey(serverKey, session.id)]?.manuallyUnread == true ||
+                                    (session.idleAtEpochMs != null && (session.viewedAtEpochMs ?: 0L) < session.idleAtEpochMs)
+                            )
+                    }
+            }
+        }
+
         init {
+            // custom: пересчитывать список чужих ответов при смене сессии и конце хода.
+            viewModelScope.launch {
+                uiState
+                    .map { it.sessionId to it.sessionStatusLabel }
+                    .distinctUntilChanged()
+                    .collect { refreshOtherSessionsUnread() }
+            }
             timeline.ioDispatcher = ioDispatcher
             composer.ioDispatcher = ioDispatcher
             viewModelScope.launch {

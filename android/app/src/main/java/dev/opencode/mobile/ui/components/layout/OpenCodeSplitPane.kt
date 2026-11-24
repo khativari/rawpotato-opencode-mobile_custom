@@ -69,6 +69,8 @@ data class OpenCodeSplitPaneDetailControl(
 @Composable
 fun openCodeDetailLeading(
     control: OpenCodeSplitPaneDetailControl?,
+    // custom: точка «в другой сессии есть ответ».
+    badge: Boolean = false,
     onBack: () -> Unit,
 ): OpenCodeTopBarLeading =
     if (control != null) {
@@ -81,7 +83,7 @@ fun openCodeDetailLeading(
             onClick = control.toggle,
         )
     } else {
-        OpenCodeTopBarLeading.Back(onClick = onBack)
+        OpenCodeTopBarLeading.Back(onClick = onBack, badge = badge)
     }
 
 /**

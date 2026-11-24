@@ -129,6 +129,8 @@ data class HomeSessionActionsCallbacks(
     val onChooseMarkUnread: () -> Unit = {},
     /** custom: отметить сессию прочитанной. */
     val onChooseMarkRead: () -> Unit = {},
+    /** custom: войти в режим выделения. */
+    val onChooseSelect: () -> Unit = {},
     val onChooseDelete: () -> Unit = {},
     val onConfirmDelete: () -> Unit = {},
     val onDismissDeleteConfirm: () -> Unit = {},
@@ -167,6 +169,13 @@ fun MainScreen(
     MainScreen(
         onSessionRead = viewModel::markSessionRead,
         readStates = home.readStates,
+        selection = home.selection,
+        onToggleSelection = viewModel::toggleSelection,
+        onClearSelection = viewModel::clearSelection,
+        onBatchMarkRead = viewModel::batchMarkRead,
+        onBatchMarkUnread = viewModel::batchMarkUnread,
+        onBatchArchive = viewModel::batchArchive,
+        onBatchDelete = viewModel::batchDelete,
         uiState = home.content,
         isRefreshing = home.isRefreshing,
         liveUpdatesConnectionStatus = home.liveConnectionStatus,
@@ -205,6 +214,7 @@ fun MainScreen(
                 onChooseArchive = viewModel::chooseArchive,
                 onChooseMarkUnread = viewModel::chooseMarkUnread,
                 onChooseMarkRead = viewModel::chooseMarkRead,
+                onChooseSelect = viewModel::chooseSelection,
                 onChooseDelete = viewModel::chooseDelete,
                 onConfirmDelete = viewModel::confirmDelete,
                 onDismissDeleteConfirm = viewModel::dismissDeleteConfirm,
@@ -292,6 +302,14 @@ internal fun MainScreen(
     onSessionRead: (String) -> Unit = {},
     // custom: локальное состояние «прочитано» для меню сессии.
     readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
+    // custom: режим массового выделения сессий.
+    selection: dev.opencode.mobile.custom.selection.SelectionState = dev.opencode.mobile.custom.selection.SelectionState(),
+    onToggleSelection: (String) -> Unit = {},
+    onClearSelection: () -> Unit = {},
+    onBatchMarkRead: () -> Unit = {},
+    onBatchMarkUnread: () -> Unit = {},
+    onBatchArchive: (Map<String, String?>) -> Unit = {},
+    onBatchDelete: (Map<String, String?>) -> Unit = {},
     onEditConnection: () -> Unit,
     onConnectClick: () -> Unit,
     onRetryProbe: () -> Unit,
@@ -498,7 +516,18 @@ internal fun MainScreen(
                 onDismissRequest = { homeMenuExpanded = false },
                 entries = homeMenuEntries,
             ) {
-                OpenCodeTopBar(
+                if (selection.active) {
+                    val directories = homeSessions.associate { it.id to it.directory }
+                    dev.opencode.mobile.custom.selection.SelectionTopBar(
+                        count = selection.count,
+                        onMarkRead = onBatchMarkRead,
+                        onMarkUnread = onBatchMarkUnread,
+                        onArchive = { onBatchArchive(directories) },
+                        onDelete = { onBatchDelete(directories) },
+                        onClose = onClearSelection,
+                    )
+                }
+                if (!selection.active) OpenCodeTopBar(
                     title = serversChrome.title.resolve(),
                     onTitleClick = if (serversChrome.isSwitcher) onTitleClick else null,
                     titleMenuExpanded = serversChrome.sheetVisible,
@@ -839,6 +868,12 @@ private fun HomeSessionActions(
             startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.ContentCopy),
             onClick = callbacks.onChooseFork,
         )
+        // custom: режим массового выделения.
+        OpenCodeBottomSheetEntry(
+            title = stringResource(R.string.custom_selection_select),
+            startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.TextSelect),
+            onClick = callbacks.onChooseSelect,
+        )
         // custom: переключить «прочитано ↔ непрочитано».
         if (targetUnread) {
             OpenCodeBottomSheetEntry(
@@ -1149,7 +1184,9 @@ private fun HomeProjectsContent(
                 )
                 onSelectedFilterIdChange(filterId)
             },
-            onSessionSelected = openSession,
+            onSessionSelected = { session ->
+                if (selection.active) onToggleSelection(session.id) else openSession(session)
+            },
             onDisplayedSessionsChange = { displayedSessions.value = it },
             onAddProject = onBrowseProjectsClick,
             onNewSession = {

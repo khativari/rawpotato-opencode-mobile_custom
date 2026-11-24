@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,6 +92,8 @@ sealed interface OpenCodeTopBarLeading {
     class Back(
         val onClick: () -> Unit,
         val contentDescription: String? = null,
+        // custom: точка «в другой сессии есть ответ».
+        val badge: Boolean = false,
     ) : OpenCodeTopBarLeading
 
     /** [contentDescription] defaults to the localised "Close" (`R.string.component_close`). */
@@ -421,6 +424,7 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
         is OpenCodeTopBarLeading.Back -> {
             // Back points toward the leading edge, so it flips in right-to-left layouts.
             val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+            Box(contentAlignment = Alignment.Center) {
             OpenCodeButton(
                 variant =
                     OpenCodeButtonVariant.IconCircle(
@@ -431,6 +435,18 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                 onClick = leading.onClick,
                 modifier = if (rtl) Modifier.graphicsLayer { scaleX = -1f } else Modifier,
             )
+                // custom: точка на «13 часах» — ответ пришёл в другую сессию.
+                if (leading.badge) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopStart)
+                                .padding(start = 9.dp, top = 9.dp)
+                                .size(8.dp)
+                                .background(openCodeColor("success"), CircleShape),
+                    )
+                }
+            }
         }
         is OpenCodeTopBarLeading.Close ->
             OpenCodeButton(
