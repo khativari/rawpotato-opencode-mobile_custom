@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +40,7 @@ class DataStoreReadStateStore(
 
     override fun observe(): Flow<Map<String, SessionReadState>> =
         dataStore.data.map { prefs ->
-            val readAt = prefs[READ_AT].orEmpty().mapNotNull { (k, v) -> v.toLongOrNull()?.let { k to it } }.toMap()
+            val readAt = parseReadAt(prefs[READ_AT].orEmpty())
             val manual = prefs[MANUALLY_UNREAD].orEmpty()
             (readAt.keys + manual).associateWith { key ->
                 SessionReadState(lastReadAtEpochMs = readAt[key], manuallyUnread = key in manual)
@@ -50,7 +49,8 @@ class DataStoreReadStateStore(
 
     override suspend fun markRead(key: String, atEpochMs: Long) {
         dataStore.edit { prefs ->
-            prefs[READ_AT] = prefs[READ_AT].orEmpty() + (key to atEpochMs.toString())
+            val kept = prefs[READ_AT].orEmpty().filterNot { decodeReadAt(it)?.first == key }
+            prefs[READ_AT] = kept + encodeReadAt(key, atEpochMs)
             prefs[MANUALLY_UNREAD] = prefs[MANUALLY_UNREAD].orEmpty() - key
         }
     }
@@ -63,13 +63,28 @@ class DataStoreReadStateStore(
 
     override suspend fun clearForServer(serverKey: String) {
         dataStore.edit { prefs ->
-            prefs[READ_AT] = prefs[READ_AT].orEmpty().filterKeys { !it.startsWith("$serverKey|") }
+            prefs[READ_AT] =
+                prefs[READ_AT].orEmpty().filterNot { decodeReadAt(it)?.first?.startsWith("$serverKey|") == true }.toSet()
             prefs[MANUALLY_UNREAD] = prefs[MANUALLY_UNREAD].orEmpty().filterNot { it.startsWith("$serverKey|") }.toSet()
         }
     }
 
+    /** Запись «ключ + время» в одном элементе: разделитель NUL, чтобы не ломать `|` в ключе. */
+    private fun encodeReadAt(key: String, atEpochMs: Long): String = key + SEPARATOR + atEpochMs
+
+    private fun decodeReadAt(entry: String): Pair<String, Long>? {
+        val at = entry.lastIndexOf(SEPARATOR)
+        if (at <= 0) return null
+        val time = entry.substring(at + 1).toLongOrNull() ?: return null
+        return entry.substring(0, at) to time
+    }
+
+    private fun parseReadAt(entries: Set<String>): Map<String, Long> =
+        entries.mapNotNull(::decodeReadAt).toMap()
+
     private companion object {
-        val READ_AT = stringPreferencesKey("read_at")
+        const val SEPARATOR = '\u0000'
+        val READ_AT = stringSetPreferencesKey("read_at")
         val MANUALLY_UNREAD = stringSetPreferencesKey("manually_unread")
     }
 }
