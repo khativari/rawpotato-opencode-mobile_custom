@@ -147,6 +147,7 @@ class PlaygroundSession(
             newSessionModelSelectionResolver = NewSessionModelSelectionResolver(modelSelectionStore, modelCatalogStore),
             connectionProfileStore = profileStore,
             activeConnectionManager = activeConnectionManager,
+            readStateStore = dev.opencode.mobile.custom.readstate.InMemoryReadStateStore(),
             sideQuestionStore = sideQuestionStore,
             worktreeInventoryCache = playgroundWorktreeInventory(),
         )

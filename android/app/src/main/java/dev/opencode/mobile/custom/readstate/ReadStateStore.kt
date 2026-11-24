@@ -88,3 +88,22 @@ class DataStoreReadStateStore(
         val MANUALLY_UNREAD = stringSetPreferencesKey("manually_unread")
     }
 }
+
+/** Для превью и песочницы: то же поведение в памяти, без диска. */
+class InMemoryReadStateStore : ReadStateStore {
+    private val state = kotlinx.coroutines.flow.MutableStateFlow<Map<String, SessionReadState>>(emptyMap())
+
+    override fun observe(): Flow<Map<String, SessionReadState>> = state
+
+    override suspend fun markRead(key: String, atEpochMs: Long) {
+        state.value = state.value + (key to SessionReadState(lastReadAtEpochMs = atEpochMs))
+    }
+
+    override suspend fun markUnread(key: String) {
+        state.value = state.value + (key to (state.value[key] ?: SessionReadState()).copy(manuallyUnread = true))
+    }
+
+    override suspend fun clearForServer(serverKey: String) {
+        state.value = state.value.filterKeys { !it.startsWith("$serverKey|") }
+    }
+}

@@ -400,8 +400,8 @@ internal fun MainScreen(
     val worktreesEnabled = HomeDisplayPreferences.showsWorktrees
     val loaded = uiState as? MainScreenUiState.Loaded
     val homeSessions =
-        remember(loaded, worktreesEnabled, uiState.readStates) {
-            loaded?.homeSessions(worktreesEnabled, uiState.readStates).orEmpty()
+        remember(loaded, worktreesEnabled, home.readStates) {
+            loaded?.homeSessions(worktreesEnabled, home.readStates).orEmpty()
         }
     val chromeProjects =
         remember(loaded, homeSessions) {
@@ -1248,7 +1248,7 @@ internal fun MainScreenUiState.Loaded.homeSessions(
     // custom: локальное состояние «прочитано».
     readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
 ): List<SessionListSession> =
-    homeSessionListSessions(projects, sections, home.extraSessions, worktreesEnabled, home.removedWorktrees)
+    homeSessionListSessions(projects, sections, home.extraSessions, worktreesEnabled, home.removedWorktrees, readStates)
 
 /** ⋯ menu subtitle of Worktrees: "N across M projects", None, or nothing before Home listed them. */
 @Composable
@@ -1282,7 +1282,7 @@ internal fun MainScreenUiState.Loaded.worktreesSnapshot(): HomeWorktreesSnapshot
 
 /** Without project data, each section is its own project (tests and previews). */
 internal fun List<ProjectSectionUi>.toCrossProjectSessionListSessions(): List<SessionListSession> =
-    homeSessionListSessions(HomeProjectGrouping.group(map { it.worktree }, emptyMap()), this)
+    homeSessionListSessions(HomeProjectGrouping.group(map { it.worktree }, emptyMap()), this, readStates = readStates)
 
 /**
  * Home rows: each project's sessions from its added paths' lists and (v1) its other
@@ -1296,6 +1296,8 @@ internal fun homeSessionListSessions(
     extraSessions: Map<String, List<SessionSummary>> = emptyMap(),
     worktreesEnabled: Boolean = true,
     removedWorktrees: Map<String, String> = emptyMap(),
+    // custom: локальное состояние «прочитано».
+    readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
 ): List<SessionListSession> {
     val sectionsByPath = sections.associateBy { it.worktree }
     val removed = removedWorktrees.keys
