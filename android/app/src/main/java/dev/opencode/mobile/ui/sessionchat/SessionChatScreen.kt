@@ -960,6 +960,17 @@ private fun SessionChatScreenBody(
                                 },
                             ),
                         )
+                        // custom: вернуть сессию в «непрочитано» из меню сессии.
+                        add(
+                            OpenCodeOverflowMenuEntry(
+                                title = stringResource(R.string.custom_mark_unread),
+                                icon = OpenCodeIcons.RadioButtonUnchecked,
+                                onClick = {
+                                    menuExpanded = false
+                                    viewModel.markCurrentSessionUnread()
+                                },
+                            ),
+                        )
                         add(
                             OpenCodeOverflowMenuEntry(
                                 title = stringResource(R.string.session_chat_menu_delete),

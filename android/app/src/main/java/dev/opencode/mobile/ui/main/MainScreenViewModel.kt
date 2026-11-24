@@ -98,20 +98,6 @@ class MainScreenViewModel
         homeWorktreesFeed: HomeWorktreesFeed = HomeWorktreesFeed(),
         newSessionDraftStore: NewSessionDraftStore = NewSessionDraftStore(),
     ) : ViewModel() {
-        /** custom: id сессий с ручной меткой «непрочитано» на текущем сервере. */
-        val manuallyUnreadIds: kotlinx.coroutines.flow.StateFlow<Set<String>> =
-            readStateStore
-                .observe()
-                .map { states ->
-                    val prefix = "$serverBaseUrl|"
-                    states
-                        .filterValues { it.manuallyUnread }
-                        .keys
-                        .filter { it.startsWith(prefix) }
-                        .map { it.removePrefix(prefix) }
-                        .toSet()
-                }.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
-
         private val _uiState =
             MutableStateFlow(
                 HomeUiState(
@@ -123,6 +109,24 @@ class MainScreenViewModel
 
         /** Home's one immutable UI state; every region reports into it synchronously. */
         val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+        /** custom: состояние «прочитано» по сессиям текущего сервера (ключ без префикса). */
+        private val readStates: kotlinx.coroutines.flow.StateFlow<Map<String, dev.opencode.mobile.custom.readstate.SessionReadState>> =
+            readStateStore
+                .observe()
+                .map { states ->
+                    val prefix = "$serverBaseUrl|"
+                    states
+                        .filterKeys { it.startsWith(prefix) }
+                        .mapKeys { it.key.removePrefix(prefix) }
+                }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+        init {
+            // custom: любое изменение прочитанного сразу перерисовывает список.
+            viewModelScope.launch {
+                readStates.collect { states -> _uiState.update { it.copy(readStates = states) } }
+            }
+        }
 
         /** Builds Home rows off the main thread (#981); tests run it on their scheduler. */
         internal var homeRowsDispatcher: CoroutineDispatcher
@@ -223,7 +227,7 @@ class MainScreenViewModel
                 scope = viewModelScope,
                 supportsSessionViewed = ::supportsSessionViewed,
                 serverBaseUrl = { serverBaseUrl },
-                manuallyUnreadIds = { manuallyUnreadIds.value },
+                manuallyUnreadIds = { emptySet() },
                 currentProfileId = ::currentProfileId,
                 isConnected = { activeConnectionManager.current() != null },
                 addressCheckRunning = {
@@ -741,6 +745,13 @@ class MainScreenViewModel
             }
         }
 
+        /** custom: отметить выбранную в меню сессию прочитанной. */
+        fun chooseMarkRead() {
+            val target = sessionActionsRegion.state.value.target ?: return
+            sessionActionsRegion.dismissSheet()
+            markSessionRead(target.sessionId)
+        }
+
         /** custom: отметить выбранную в меню сессию непрочитанной. */
         fun chooseMarkUnread() {
             val target = sessionActionsRegion.state.value.target ?: return
@@ -859,6 +870,8 @@ data class HomeUiState(
     val isRefreshing: Boolean = false,
     val snackbar: HomeSnackbar? = null,
     val sessionActions: HomeSessionActionsUiState = HomeSessionActionsUiState(),
+    /** custom: локальное состояние «прочитано» по сессиям текущего сервера. */
+    val readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
     /** Home menu's Archived sessions entry; null on servers that cannot restore archived sessions. */
     val archivedMenu: HomeArchivedMenuEntry? = null,
     val paging: HomeSessionPagingState = HomeSessionPagingState(),

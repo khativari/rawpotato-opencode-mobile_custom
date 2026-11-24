@@ -127,6 +127,8 @@ data class HomeSessionActionsCallbacks(
     val onChooseArchive: () -> Unit = {},
     /** custom: отметить сессию непрочитанной. */
     val onChooseMarkUnread: () -> Unit = {},
+    /** custom: отметить сессию прочитанной. */
+    val onChooseMarkRead: () -> Unit = {},
     val onChooseDelete: () -> Unit = {},
     val onConfirmDelete: () -> Unit = {},
     val onDismissDeleteConfirm: () -> Unit = {},
@@ -164,6 +166,7 @@ fun MainScreen(
     }
     MainScreen(
         onSessionRead = viewModel::markSessionRead,
+        readStates = home.readStates,
         uiState = home.content,
         isRefreshing = home.isRefreshing,
         liveUpdatesConnectionStatus = home.liveConnectionStatus,
@@ -201,6 +204,7 @@ fun MainScreen(
                 onForkStay = viewModel::chooseForkStay,
                 onChooseArchive = viewModel::chooseArchive,
                 onChooseMarkUnread = viewModel::chooseMarkUnread,
+                onChooseMarkRead = viewModel::chooseMarkRead,
                 onChooseDelete = viewModel::chooseDelete,
                 onConfirmDelete = viewModel::confirmDelete,
                 onDismissDeleteConfirm = viewModel::dismissDeleteConfirm,
@@ -286,6 +290,8 @@ internal fun MainScreen(
     onSessionClick: (SessionOpenTarget) -> Unit,
     // custom: сессию открыли — отметить прочитанной.
     onSessionRead: (String) -> Unit = {},
+    // custom: локальное состояние «прочитано» для меню сессии.
+    readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
     onEditConnection: () -> Unit,
     onConnectClick: () -> Unit,
     onRetryProbe: () -> Unit,
@@ -393,7 +399,10 @@ internal fun MainScreen(
         }
     val worktreesEnabled = HomeDisplayPreferences.showsWorktrees
     val loaded = uiState as? MainScreenUiState.Loaded
-    val homeSessions = remember(loaded, worktreesEnabled) { loaded?.homeSessions(worktreesEnabled).orEmpty() }
+    val homeSessions =
+        remember(loaded, worktreesEnabled, uiState.readStates) {
+            loaded?.homeSessions(worktreesEnabled, uiState.readStates).orEmpty()
+        }
     val chromeProjects =
         remember(loaded, homeSessions) {
             loaded?.let { state -> homeChromeProjects(state.projects, homeSessions, state.projectLoads) }.orEmpty()
@@ -754,7 +763,18 @@ internal fun MainScreen(
         onDismissRequest = onDismissProjectRemoval,
     )
 
-    HomeSessionActions(state = sessionActions, callbacks = sessionActionsCallbacks)
+    HomeSessionActions(
+        state = sessionActions,
+        callbacks = sessionActionsCallbacks,
+        targetUnread =
+            sessionActions.target?.let { target ->
+                dev.opencode.mobile.custom.readstate.SessionUnread.isUnread(
+                    updatedAtEpochMs = null,
+                    serverUnread = false,
+                    state = readStates[target.sessionId],
+                )
+            } ?: false,
+    )
 
     AddProjectSheet(
         visible = showAddSheet,
@@ -775,6 +795,8 @@ private const val SERVER_SWITCH_ANIMATION_LABEL = "serverSwitch"
 private fun HomeSessionActions(
     state: HomeSessionActionsUiState,
     callbacks: HomeSessionActionsCallbacks,
+    // custom: цель сейчас помечена непрочитанной — тогда пункт называется «Mark read».
+    targetUnread: Boolean = false,
 ) {
     ProductPresentedScreenViewEffect(
         screenId = ProductAnalytics.Screen.HOME_SESSION_ACTIONS,
@@ -817,12 +839,20 @@ private fun HomeSessionActions(
             startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.ContentCopy),
             onClick = callbacks.onChooseFork,
         )
-        // custom: вернуть сессию в «непрочитано».
-        OpenCodeBottomSheetEntry(
-            title = stringResource(R.string.custom_mark_unread),
-            startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.RadioButtonUnchecked),
-            onClick = callbacks.onChooseMarkUnread,
-        )
+        // custom: переключить «прочитано ↔ непрочитано».
+        if (targetUnread) {
+            OpenCodeBottomSheetEntry(
+                title = stringResource(R.string.custom_mark_read),
+                startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.Check),
+                onClick = callbacks.onChooseMarkRead,
+            )
+        } else {
+            OpenCodeBottomSheetEntry(
+                title = stringResource(R.string.custom_mark_unread),
+                startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.RadioButtonUnchecked),
+                onClick = callbacks.onChooseMarkUnread,
+            )
+        }
         if (state.canArchive) {
             OpenCodeBottomSheetEntry(
                 title = stringResource(R.string.home_session_actions_archive),
@@ -1213,7 +1243,11 @@ internal fun homeScopeId(
 ): String = HomeScope.resolve(id, projects, worktreesEnabled)?.let(HomeScope::id) ?: id
 
 /** Rows for every Home project, one per session id. */
-internal fun MainScreenUiState.Loaded.homeSessions(worktreesEnabled: Boolean = true): List<SessionListSession> =
+internal fun MainScreenUiState.Loaded.homeSessions(
+    worktreesEnabled: Boolean = true,
+    // custom: локальное состояние «прочитано».
+    readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
+): List<SessionListSession> =
     homeSessionListSessions(projects, sections, home.extraSessions, worktreesEnabled, home.removedWorktrees)
 
 /** ⋯ menu subtitle of Worktrees: "N across M projects", None, or nothing before Home listed them. */
@@ -1289,7 +1323,7 @@ internal fun homeSessionListSessions(
             compareByDescending<Int> { index ->
                 flattened[index].session.updatedAtEpochMs ?: 0L
             }.thenBy { index -> index },
-        ).map { index -> flattened[index].toSessionListSession(worktreesEnabled) }
+        ).map { index -> flattened[index].toSessionListSession(worktreesEnabled, readStates) }
 }
 
 private data class HomeRowSource(
@@ -1300,7 +1334,10 @@ private data class HomeRowSource(
     /** Worktree directories removed from this app. */
     val removedDirectories: Set<String> = emptySet(),
 ) {
-    fun toSessionListSession(worktreesEnabled: Boolean = true): SessionListSession {
+    fun toSessionListSession(
+        worktreesEnabled: Boolean = true,
+        readStates: Map<String, dev.opencode.mobile.custom.readstate.SessionReadState> = emptyMap(),
+    ): SessionListSession {
         val directory = session.directory?.takeIf { it.isNotEmpty() } ?: listedIn
         val worktree = project.worktree(directory)?.takeIf { worktreesEnabled && project.hasManyWorktrees }
         return SessionListSession(
@@ -1313,7 +1350,12 @@ private data class HomeRowSource(
             directory = directory,
             status = session.toSessionListStatus(),
             // custom: непрочитанный финиш сервера или ручная метка.
-            unread = session.unreadOutcome != null || session.isManuallyUnread,
+            unread =
+                dev.opencode.mobile.custom.readstate.SessionUnread.isUnread(
+                    updatedAtEpochMs = session.updatedAtEpochMs,
+                    serverUnread = session.unreadOutcome != null,
+                    state = readStates[session.id],
+                ),
             caption = session.updatedAtEpochMs?.let(RelativeTimeFormatting::format) ?: UiText.verbatim(""),
             updatedAtEpochMs = session.updatedAtEpochMs,
             retryAttempt = session.retryAttempt(),

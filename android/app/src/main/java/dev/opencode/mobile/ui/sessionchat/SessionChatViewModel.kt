@@ -151,6 +151,8 @@ class SessionChatViewModel
         newSessionModelSelectionResolver: NewSessionModelSelectionResolver,
         connectionProfileStore: ConnectionProfileStore,
         private val activeConnectionManager: ActiveConnectionManager,
+        // custom: ручная метка «непрочитано» из шапки сессии.
+        private val readStateStore: dev.opencode.mobile.custom.readstate.ReadStateStore,
         lastTurnReviewChangesStore: LastTurnReviewChangesStore = LastTurnReviewChangesStore(),
         liveUpdates: LiveUpdates = FixedLiveUpdates(),
         private val syncCoordinator: SyncCoordinator = NoOpSyncCoordinator,
@@ -1844,7 +1846,16 @@ class SessionChatViewModel
             return becameBusy || serverUpdated
         }
 
-        fun abort() {
+        /** custom: отметить текущую сессию непрочитанной (пункт в меню «…»). */
+    fun markCurrentSessionUnread() {
+        val id = uiState.value.sessionId.takeIf { it.isNotBlank() } ?: return
+        val serverKey = activeConnectionManager.current()?.baseUrl.orEmpty()
+        viewModelScope.launch {
+            readStateStore.markUnread(dev.opencode.mobile.custom.readstate.readStateKey(serverKey, id))
+        }
+    }
+
+    fun abort() {
             logAction(ProductAnalytics.Action.COMPOSER_ABORT)
             logI("abort tap session=$boundSessionId live=${isConnectionLive()}")
             if (!isConnectionLive()) return
