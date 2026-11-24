@@ -597,6 +597,7 @@ internal fun MainScreen(
                             else -> null
                         }
                     HomeProjectsContent(
+                        onSessionRead = viewModel::markSessionRead,
                         sections = sections,
                         sessions = homeSessions,
                         chromeProjects = chromeProjects,
@@ -950,6 +951,8 @@ private fun ProbeFailedContent(
 @Composable
 private fun HomeProjectsContent(
     sections: List<ProjectSectionUi>,
+    // custom: сессию открыли — отметить прочитанной.
+    onSessionRead: (String) -> Unit = {},
     sessions: List<SessionListSession>,
     chromeProjects: List<SessionListHomeChrome.Project>,
     onRetryProjectLoad: (String) -> Unit,
@@ -987,7 +990,7 @@ private fun HomeProjectsContent(
             actionId = ProductAnalytics.Action.HOME_OPEN_SESSION,
         )
         // custom: открыли сессию — она прочитана.
-        viewModel.markSessionRead(session.id)
+        onSessionRead(session.id)
         onSessionClick(
             SessionOpenTarget(
                 sessionId = session.id,

@@ -113,6 +113,8 @@ class SessionDomainAdapter {
         isReady: Boolean = false,
         statusStale: Boolean = false,
         unreadOutcome: SessionIdleOutcome? = null,
+        // custom: ручная метка «непрочитано».
+        isManuallyUnread: Boolean = false,
     ): SessionSummary =
         SessionSummary(
             id = session.id,
@@ -123,6 +125,7 @@ class SessionDomainAdapter {
             isReady = isReady,
             statusStale = statusStale,
             unreadOutcome = unreadOutcome,
+            isManuallyUnread = isManuallyUnread,
             directory = session.directory,
         )
 

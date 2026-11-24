@@ -50,7 +50,7 @@ class DataStoreReadStateStore(
     override suspend fun markRead(key: String, atEpochMs: Long) {
         dataStore.edit { prefs ->
             val kept = prefs[READ_AT].orEmpty().filterNot { decodeReadAt(it)?.first == key }
-            prefs[READ_AT] = kept + encodeReadAt(key, atEpochMs)
+            prefs[READ_AT] = (kept + encodeReadAt(key, atEpochMs)).toSet()
             prefs[MANUALLY_UNREAD] = prefs[MANUALLY_UNREAD].orEmpty() - key
         }
     }
