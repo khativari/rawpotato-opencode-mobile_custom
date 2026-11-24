@@ -14,6 +14,10 @@ on:
         description: "AssembleBenchmark (release-like, быстрая) или AssembleDebug"
         required: false
         default: "Benchmark"
+      task:
+        description: "Явная задача Gradle (например :app:compileDebugKotlin для быстрой проверки)"
+        required: false
+        default: ""
   push:
     branches: [custom]
 
@@ -41,11 +45,12 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew :app:assemble${VARIANT:-Debug} --stacktrace ${TAG:+-PcustomTag=$TAG} ${RING:+-PringStroke=$RING}
+        run: ./gradlew ${TASK:-:app:assemble${VARIANT:-Debug}} --stacktrace ${TAG:+-PcustomTag=$TAG} ${RING:+-PringStroke=$RING}
         env:
           TAG: ${{ inputs.tag }}
           RING: ${{ inputs.ring }}
           VARIANT: ${{ inputs.variant || 'Debug' }}
+          TASK: ${{ inputs.task }}
 
       - uses: actions/upload-artifact@v4
         with:

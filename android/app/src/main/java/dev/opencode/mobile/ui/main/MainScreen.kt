@@ -163,6 +163,7 @@ fun MainScreen(
         viewModel.markHomeHidden()
     }
     MainScreen(
+        onSessionRead = viewModel::markSessionRead,
         uiState = home.content,
         isRefreshing = home.isRefreshing,
         liveUpdatesConnectionStatus = home.liveConnectionStatus,
@@ -283,6 +284,8 @@ internal fun MainScreen(
     onTerminalClick: () -> Unit = {},
     onWorktreesClick: () -> Unit = {},
     onSessionClick: (SessionOpenTarget) -> Unit,
+    // custom: сессию открыли — отметить прочитанной.
+    onSessionRead: (String) -> Unit = {},
     onEditConnection: () -> Unit,
     onConnectClick: () -> Unit,
     onRetryProbe: () -> Unit,
@@ -597,7 +600,7 @@ internal fun MainScreen(
                             else -> null
                         }
                     HomeProjectsContent(
-                        onSessionRead = viewModel::markSessionRead,
+                        onSessionRead = onSessionRead,
                         sections = sections,
                         sessions = homeSessions,
                         chromeProjects = chromeProjects,
