@@ -69,9 +69,14 @@ data class OpenCodeSplitPaneDetailControl(
 @Composable
 fun openCodeDetailLeading(
     control: OpenCodeSplitPaneDetailControl?,
-    // custom: точка «в другой сессии есть ответ».
-    badge: Boolean = false,
     onBack: () -> Unit,
+): OpenCodeTopBarLeading = openCodeDetailLeading(control, onBack, badge = false)
+
+/** custom: тот же ведущий контрол, но с точкой «в другой сессии есть ответ». */
+fun openCodeDetailLeading(
+    control: OpenCodeSplitPaneDetailControl?,
+    onBack: () -> Unit,
+    badge: Boolean,
 ): OpenCodeTopBarLeading =
     if (control != null) {
         OpenCodeTopBarLeading.CustomIcon(

@@ -76,7 +76,7 @@ class MainScreenViewModel
     constructor(
         projectRepository: ProjectRepository,
         filesystemRepository: FilesystemRepository,
-        sessionRepository: SessionRepository,
+        private val sessionRepository: SessionRepository,
         messageRepository: MessageRepository,
         private val connectionProfileStore: ConnectionProfileStore,
         // custom: ручные метки «непрочитано» живут локально.

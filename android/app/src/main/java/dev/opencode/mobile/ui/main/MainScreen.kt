@@ -639,6 +639,8 @@ internal fun MainScreen(
                         }
                     HomeProjectsContent(
                         onSessionRead = onSessionRead,
+                        selection = selection,
+                        onToggleSelection = onToggleSelection,
                         sections = sections,
                         sessions = homeSessions,
                         chromeProjects = chromeProjects,
@@ -1021,6 +1023,10 @@ private fun HomeProjectsContent(
     sections: List<ProjectSectionUi>,
     // custom: сессию открыли — отметить прочитанной.
     onSessionRead: (String) -> Unit = {},
+    // custom: режим массового выделения.
+    selection: dev.opencode.mobile.custom.selection.SelectionState =
+        dev.opencode.mobile.custom.selection.SelectionState(),
+    onToggleSelection: (String) -> Unit = {},
     sessions: List<SessionListSession>,
     chromeProjects: List<SessionListHomeChrome.Project>,
     onRetryProjectLoad: (String) -> Unit,

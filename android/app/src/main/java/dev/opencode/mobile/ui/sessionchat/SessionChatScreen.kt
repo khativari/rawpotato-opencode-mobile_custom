@@ -1016,11 +1016,10 @@ private fun SessionChatScreenBody(
                     leading =
                         openCodeDetailLeading(
                             detailControl,
-                            badge = otherSessionsUnread,
-                        ) {
+                            {
                             logChatAction(ProductAnalytics.Action.CHAT_BACK)
                             onNavigateBack()
-                        },
+                        }, badge = otherSessionsUnread),
                     actions =
                         listOf(
                             OpenCodeTopBarAction.Icon(
