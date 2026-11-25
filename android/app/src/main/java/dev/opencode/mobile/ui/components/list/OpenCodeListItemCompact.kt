@@ -361,7 +361,17 @@ internal fun ListItemTile(
             character = decorator.character,
             accent = decorator.accent,
             glyphSize = CompactTileGlyphSize,
-            modifier = Modifier.size(tileSize),
+            modifier =
+                Modifier
+                    .size(tileSize)
+                    // custom: выбранная сессия — акцентное кольцо вокруг плитки.
+                    .then(
+                        if (decorator.selected) {
+                            Modifier.border(2.dp, openCodeColor("interactive"), CircleShape)
+                        } else {
+                            Modifier
+                        },
+                    ),
         )
         val tone = decorator.statusDot
         if (tone != null) {

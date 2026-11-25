@@ -462,9 +462,12 @@ class SessionChatViewModel
                 _otherSessionsUnread.value =
                     sessions.any { session ->
                         session.id != current &&
-                            (
-                                states[dev.opencode.mobile.custom.readstate.readStateKey(serverKey, session.id)]?.manuallyUnread == true ||
-                                    (session.idleAtEpochMs != null && (session.viewedAtEpochMs ?: 0L) < session.idleAtEpochMs)
+                            dev.opencode.mobile.custom.readstate.SessionUnread.isUnread(
+                                updatedAtEpochMs = session.updatedAtEpochMs,
+                                serverUnread =
+                                    session.idleAtEpochMs != null &&
+                                        (session.viewedAtEpochMs ?: 0L) < session.idleAtEpochMs,
+                                state = states[dev.opencode.mobile.custom.readstate.readStateKey(serverKey, session.id)],
                             )
                     }
             }
@@ -474,7 +477,22 @@ class SessionChatViewModel
             // custom: пересчитывать список чужих ответов при смене сессии и конце хода.
             viewModelScope.launch {
                 uiState
-                    .map { it.sessionId to it.sessionStatusLabel }
+                    .map { it.sessionId }
+                    .distinctUntilChanged()
+                    .collect { id ->
+                        if (id.isNotBlank()) {
+                            val serverKey = activeConnectionManager.current()?.baseUrl.orEmpty()
+                            readStateStore.markRead(
+                                dev.opencode.mobile.custom.readstate.readStateKey(serverKey, id),
+                                System.currentTimeMillis(),
+                            )
+                        }
+                        refreshOtherSessionsUnread()
+                    }
+            }
+            viewModelScope.launch {
+                uiState
+                    .map { it.sessionStatusLabel }
                     .distinctUntilChanged()
                     .collect { refreshOtherSessionsUnread() }
             }

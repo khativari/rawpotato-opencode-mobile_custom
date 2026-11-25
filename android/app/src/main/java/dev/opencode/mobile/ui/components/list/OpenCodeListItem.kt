@@ -598,7 +598,17 @@ internal fun ListItemStartDecoration(
                     character = decorator.character,
                     accent = decorator.accent,
                     glyphSize = ListItemLetterGlyphSize,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            // custom: выбранная сессия — акцентное кольцо вокруг буквы.
+                            .then(
+                                if (decorator.selected) {
+                                    Modifier.border(2.dp, openCodeColor("interactive"), CircleShape)
+                                } else {
+                                    Modifier
+                                },
+                            ),
                 )
                 val statusTone = decorator.statusDot
                 val showWorktree = decorator.worktree

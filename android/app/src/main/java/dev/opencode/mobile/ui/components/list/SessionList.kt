@@ -320,6 +320,8 @@ fun SessionList(
     onNewSessionLongPress: (() -> Unit)? = null,
     revealNewestToken: Int = 0,
     selectedSessionId: String? = null,
+    /** custom: сессии, отмеченные в режиме массового выделения. */
+    selectedIds: Set<String> = emptySet(),
     /** Rows of [selectedFilterId] in display order (sections flattened, top to bottom). */
     onDisplayedSessionsChange: ((List<SessionListSession>) -> Unit)? = null,
     /** Retry for a scope whose [SessionListFilterTab.load] failed; receives the tab id. */
@@ -377,6 +379,7 @@ fun SessionList(
                     emptyContent = emptyContent,
                     revealNewestToken = revealNewestToken,
                     selectedSessionId = selectedSessionId,
+                    selectedIds = selectedIds,
                     onSessionSelected = onSessionSelected,
                     onSessionLongPress = onSessionLongPress,
                     onDisplayedSessionsChange =
@@ -431,6 +434,7 @@ private fun SessionListFeedPage(
     emptyContent: (@Composable () -> Unit)?,
     revealNewestToken: Int,
     selectedSessionId: String?,
+    selectedIds: Set<String> = emptySet(),
     onSessionSelected: (SessionListSession) -> Unit,
     onSessionLongPress: ((SessionListSession) -> Unit)?,
     onDisplayedSessionsChange: ((List<SessionListSession>) -> Unit)?,
@@ -567,6 +571,7 @@ private fun SessionListFeedPage(
         listBottomFadeHeight = listBottomFadeHeight,
         emptyContent = emptyContent,
         selectedSessionId = selectedSessionId,
+                    selectedIds = selectedIds,
         onSessionSelected = onSessionSelected,
         onSessionLongPress = onSessionLongPress,
         rowStyle = rowStyle,
@@ -591,6 +596,7 @@ private fun SessionListFeed(
     listBottomFadeHeight: Dp,
     emptyContent: (@Composable () -> Unit)?,
     selectedSessionId: String?,
+    selectedIds: Set<String> = emptySet(),
     onSessionSelected: (SessionListSession) -> Unit,
     onSessionLongPress: ((SessionListSession) -> Unit)?,
     rowStyle: HomeSessionRowStyle,
@@ -671,6 +677,7 @@ private fun SessionListFeed(
                         listBottomFadeHeight = listBottomFadeHeight,
                         emptyContent = emptyContent,
                         selectedSessionId = selectedSessionId,
+                    selectedIds = selectedIds,
                         onSessionSelected = onSessionSelected,
                         onSessionLongPress = onSessionLongPress,
                         rowStyle = rowStyle,
@@ -690,6 +697,7 @@ private fun SessionListFeedRows(
     listBottomFadeHeight: Dp,
     emptyContent: (@Composable () -> Unit)?,
     selectedSessionId: String?,
+    selectedIds: Set<String> = emptySet(),
     onSessionSelected: (SessionListSession) -> Unit,
     onSessionLongPress: ((SessionListSession) -> Unit)?,
     rowStyle: HomeSessionRowStyle,
@@ -725,7 +733,7 @@ private fun SessionListFeedRows(
                             SessionListRow(
                                 session = session,
                                 showStatusDot = true,
-                                selected = session.id == selectedSessionId,
+                                selected = session.id == selectedSessionId || session.id in selectedIds,
                                 onSessionSelected = onSessionSelected,
                                 onSessionLongPress = onSessionLongPress,
                                 rowStyle = rowStyle,
@@ -745,7 +753,7 @@ private fun SessionListFeedRows(
                             SessionListRow(
                                 session = session,
                                 showStatusDot = false,
-                                selected = session.id == selectedSessionId,
+                                selected = session.id == selectedSessionId || session.id in selectedIds,
                                 onSessionSelected = onSessionSelected,
                                 onSessionLongPress = onSessionLongPress,
                                 rowStyle = rowStyle,
@@ -868,6 +876,7 @@ private fun SessionListRowContent(
                 accent = session.letterAccent,
                 // custom: точка непрочитанного, когда статус ничего своего не показывает.
                 statusDot = if (showStatusDot) status.tone else if (session.unread) OpenCodeListItemStatusTone.Interactive else null,
+                selected = selected,
             ),
         selected = selected,
         onClick = { onSessionSelected(session) },
@@ -894,7 +903,7 @@ private fun SessionListCompactRow(
         titleHighlight = titleHighlight,
         variant = OpenCodeListItemVariant.Compact,
         path = session.compactPath(removedNote = stringResource(R.string.session_list_worktree_removed)),
-        titleEmphasized = session.status.isUnreadFinish || session.unread,
+        titleEmphasized = session.status.isUnreadFinish || session.unread || selected,
         status = active,
         caption = session.caption.resolve().takeIf { it.isNotEmpty() },
         startDecorator =
@@ -903,6 +912,7 @@ private fun SessionListCompactRow(
                 accent = session.letterAccent,
                 // custom: точка непрочитанного не спорит со статусом работы.
                 statusDot = active?.tone ?: if (session.unread) OpenCodeListItemStatusTone.Interactive else null,
+                selected = selected,
                 pulsing = session.status == SessionListStatus.Running && !session.statusStale,
             ),
         selected = selected,

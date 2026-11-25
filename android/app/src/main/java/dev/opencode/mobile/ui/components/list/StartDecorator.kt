@@ -12,6 +12,8 @@ sealed class StartDecorator {
         val statusDot: OpenCodeListItemStatusTone? = null,
         /** Small worktree mark on the bottom-end corner. With a status dot the two merge into one status-colored badge. */
         val worktree: Boolean = false,
+        /** custom: сессия отмечена в режиме выделения — вокруг буквы рисуется акцентное кольцо. */
+        val selected: Boolean = false,
     ) : StartDecorator()
 
     /**
@@ -23,6 +25,8 @@ sealed class StartDecorator {
         val accent: LetterAccent,
         val statusDot: OpenCodeListItemStatusTone? = null,
         val pulsing: Boolean = false,
+        /** custom: сессия отмечена в режиме выделения — вокруг плитки акцентное кольцо. */
+        val selected: Boolean = false,
     ) : StartDecorator()
 
     data class Icon(

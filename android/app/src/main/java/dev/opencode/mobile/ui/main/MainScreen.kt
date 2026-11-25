@@ -1167,6 +1167,7 @@ private fun HomeProjectsContent(
         )
         SessionList(
             sessions = sessions,
+            selectedIds = if (selection.active) selection.ids else emptySet(),
             filterTabs = filterTabs,
             selectedFilterId = resolvedFilterId,
             createError = projectSessionCreateError?.resolve(),

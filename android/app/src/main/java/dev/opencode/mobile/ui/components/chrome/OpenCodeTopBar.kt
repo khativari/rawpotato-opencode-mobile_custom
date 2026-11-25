@@ -440,8 +440,9 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                     Box(
                         modifier =
                             Modifier
-                                .align(Alignment.TopStart)
-                                .padding(start = 9.dp, top = 9.dp)
+                                // custom: «13 часов» — правая верхняя четверть кружка.
+                                .align(Alignment.TopEnd)
+                                .padding(end = 9.dp, top = 9.dp)
                                 .size(8.dp)
                                 .background(openCodeColor("success"), CircleShape),
                     )
