@@ -452,7 +452,8 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                                 // 12.5 dp при кнопке 40 dp, обводка 2.5 dp.
                                 .size(12.5.dp)
                                 .border(2.5.dp, openCodeColor("background-base"), CircleShape)
-                                .background(openCodeColor("success"), CircleShape),
+                                // Тот же токен, что у точки непрочитанного в списке сессий: цвет темы (interactive).
+                                .background(openCodeColor("interactive"), CircleShape),
                     )
                 }
             }
