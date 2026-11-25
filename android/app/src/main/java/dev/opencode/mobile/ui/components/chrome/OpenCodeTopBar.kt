@@ -448,10 +448,9 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                                 // (расстояние от центра кружка = радиус). Здесь круг 40 dp,
                                 // поэтому точка стоит по TopEnd без смещения.
                                 .align(Alignment.TopEnd)
-                                // Пропорция списка: точка 10 dp при бейдже 32 dp → здесь
-                                // 12.5 dp при кнопке 40 dp, обводка 2.5 dp.
+                                // Пропорция списка: точка 10 dp при бейдже 32 dp → здесь 12.5 dp
+                                // при кнопке 40 dp. Без обводки: на кнопке она давала тёмное кольцо.
                                 .size(12.5.dp)
-                                .border(2.5.dp, openCodeColor("background-base"), CircleShape)
                                 // Тот же токен, что у точки непрочитанного в списке сессий: цвет темы (interactive).
                                 .background(openCodeColor("interactive"), CircleShape),
                     )
