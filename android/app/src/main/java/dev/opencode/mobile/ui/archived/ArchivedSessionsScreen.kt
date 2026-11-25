@@ -135,7 +135,7 @@ fun ArchivedSessionsScreen(
                                         viewModel.toggleSelection(row.id)
                                     }
                                 },
-                                onRowLongPress = { row -> viewModel.toggleSelection(row.id) },
+                                onRowLongPress = { row -> viewModel.openActions(row) },
                             )
                         }
                 }
@@ -169,6 +169,7 @@ fun ArchivedSessionsScreen(
     ArchivedSessionActions(
         uiState = uiState,
         onDismiss = viewModel::dismissActions,
+        onSelect = viewModel::selectFromActions,
         onUnarchive = viewModel::chooseUnarchive,
         onOpen = {
             viewModel.chooseOpen()?.let { row -> onOpenSession(row.directory, row.id, row.title) }
@@ -251,6 +252,7 @@ private fun ArchivedSessionActions(
     uiState: ArchivedSessionsUiState,
     onDismiss: () -> Unit,
     onUnarchive: () -> Unit,
+    onSelect: () -> Unit,
     onOpen: () -> Unit,
     onDelete: () -> Unit,
     onConfirmDelete: () -> Unit,
@@ -280,6 +282,11 @@ private fun ArchivedSessionActions(
                 modifier = Modifier.openCodeBottomSheetContentInset().padding(bottom = 8.dp),
             )
         }
+        OpenCodeBottomSheetEntry(
+            title = stringResource(R.string.custom_selection_select),
+            startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.SelectMultiple),
+            onClick = onSelect,
+        )
         OpenCodeBottomSheetEntry(
             title = stringResource(R.string.archived_sessions_unarchive),
             startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.Unarchive),

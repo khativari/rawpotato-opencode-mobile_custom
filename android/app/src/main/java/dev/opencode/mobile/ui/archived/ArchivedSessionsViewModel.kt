@@ -38,6 +38,13 @@ class ArchivedSessionsViewModel
         private val _selection = kotlinx.coroutines.flow.MutableStateFlow<Set<String>>(emptySet())
         val selection: kotlinx.coroutines.flow.StateFlow<Set<String>> = _selection
 
+        /** custom: из шторки действий войти в режим выделения с этой сессией. */
+        fun selectFromActions() {
+            val id = model.state.value.actionTarget?.id ?: return
+            model.dismissActions()
+            _selection.value = setOf(id)
+        }
+
         fun toggleSelection(sessionId: String) {
             _selection.value =
                 if (sessionId in _selection.value) _selection.value - sessionId else _selection.value + sessionId
