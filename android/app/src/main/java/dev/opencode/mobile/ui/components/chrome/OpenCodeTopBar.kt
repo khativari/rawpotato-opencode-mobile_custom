@@ -2,6 +2,7 @@ package dev.opencode.mobile.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -440,10 +442,12 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                     Box(
                         modifier =
                             Modifier
-                                // custom: «13 часов» — правая верхняя четверть кружка.
+                                // custom: как в списке сессий — точка сидит на границе кружка,
+                                // 13 часов, с обводкой цветом фона, чтобы читалась отдельно.
                                 .align(Alignment.TopEnd)
-                                .padding(end = 9.dp, top = 9.dp)
-                                .size(8.dp)
+                                .offset(x = 1.dp, y = (-1).dp)
+                                .size(10.dp)
+                                .border(2.dp, openCodeColor("background-base"), CircleShape)
                                 .background(openCodeColor("success"), CircleShape),
                     )
                 }

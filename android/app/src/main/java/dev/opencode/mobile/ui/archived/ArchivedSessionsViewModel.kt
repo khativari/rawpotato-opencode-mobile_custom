@@ -34,6 +34,33 @@ class ArchivedSessionsViewModel
 
         fun bind(scopeId: String) = model.bind(scopeId)
 
+        // custom: массовое выделение архивных сессий.
+        private val _selection = kotlinx.coroutines.flow.MutableStateFlow<Set<String>>(emptySet())
+        val selection: kotlinx.coroutines.flow.StateFlow<Set<String>> = _selection
+
+        fun toggleSelection(sessionId: String) {
+            _selection.value =
+                if (sessionId in _selection.value) _selection.value - sessionId else _selection.value + sessionId
+        }
+
+        fun clearSelection() {
+            _selection.value = emptySet()
+        }
+
+        fun unarchiveSelected() {
+            val ids = _selection.value
+            if (ids.isEmpty()) return
+            model.unarchiveMany(ids)
+            _selection.value = emptySet()
+        }
+
+        fun deleteSelected() {
+            val ids = _selection.value
+            if (ids.isEmpty()) return
+            model.deleteMany(ids)
+            _selection.value = emptySet()
+        }
+
         fun retry() = model.retry()
 
         fun showAllProjects() = model.showAllProjects()

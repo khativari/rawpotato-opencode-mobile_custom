@@ -16,6 +16,8 @@ object SessionUnread {
         val readAt = state?.lastReadAtEpochMs
         // Локально прочитано позже последнего обновления — серверный признак устарел.
         if (readAt != null && updatedAtEpochMs != null && readAt >= updatedAtEpochMs) return false
+        // Время обновления неизвестно, но сессию читали — считаем прочитанной.
+        if (readAt != null && updatedAtEpochMs == null) return false
         return serverUnread
     }
 }

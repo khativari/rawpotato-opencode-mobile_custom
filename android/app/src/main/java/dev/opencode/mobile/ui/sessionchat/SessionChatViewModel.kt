@@ -463,7 +463,9 @@ class SessionChatViewModel
                     sessions.any { session ->
                         session.id != current &&
                             dev.opencode.mobile.custom.readstate.SessionUnread.isUnread(
-                                updatedAtEpochMs = session.updatedAtEpochMs,
+                                updatedAtEpochMs =
+                                    maxOf(session.updatedAtEpochMs ?: 0L, session.idleAtEpochMs ?: 0L)
+                                        .takeIf { it > 0L },
                                 serverUnread =
                                     session.idleAtEpochMs != null &&
                                         (session.viewedAtEpochMs ?: 0L) < session.idleAtEpochMs,
@@ -495,6 +497,10 @@ class SessionChatViewModel
                     .map { it.sessionStatusLabel }
                     .distinctUntilChanged()
                     .collect { refreshOtherSessionsUnread() }
+            }
+            // custom: пометили прочитанное в списке — точка в открытой сессии гаснет сразу.
+            viewModelScope.launch {
+                readStateStore.observe().collect { refreshOtherSessionsUnread() }
             }
             timeline.ioDispatcher = ioDispatcher
             composer.ioDispatcher = ioDispatcher

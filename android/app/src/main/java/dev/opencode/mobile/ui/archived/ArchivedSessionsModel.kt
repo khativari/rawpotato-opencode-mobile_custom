@@ -244,6 +244,24 @@ class ArchivedSessionsModel(
     }
 
     /** The snackbar's Undo: archives the session again and puts its row back. */
+    /** custom: снять с архива пачку сессий. */
+    fun unarchiveMany(sessionIds: Set<String>) {
+        sessionIds.forEach { unarchive(it) }
+    }
+
+    /** custom: удалить пачку архивных сессий, не открывая подтверждение на каждую. */
+    fun deleteMany(sessionIds: Set<String>) {
+        sessionIds.forEach { id ->
+            val session = sessionFor(id) ?: return@forEach
+            hide(id)
+            val directory = directoryOf(session)
+            scope.launch {
+                runCatching { sessionRepository.deleteSession(id = id, directory = directory) }
+                    .onFailure { logW("batch delete failed session=$id message=${it.message}") }
+            }
+        }
+    }
+
     fun undoUnarchive(sessionId: String) {
         val (projectKey, session) = undoable.remove(sessionId) ?: return
         settled.remove(sessionId)

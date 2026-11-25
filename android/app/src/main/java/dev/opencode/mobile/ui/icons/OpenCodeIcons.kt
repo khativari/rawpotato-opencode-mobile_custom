@@ -18,6 +18,7 @@ private var _arrow_upward: ImageVector? = null
 private var _arrow_warm_up: ImageVector? = null
 private var _arrow_downward: ImageVector? = null
 private var _check: ImageVector? = null
+private var _select_multiple: ImageVector? = null
 private var _chevron_right: ImageVector? = null
 private var _keyboard_arrow_down: ImageVector? = null
 private var _close: ImageVector? = null
@@ -293,6 +294,39 @@ private var _message_square: ImageVector? = null
     )
       }.build()
       return _check!!
+    }
+
+  /** custom: три галочки столбцом — «выделить несколько». */
+  val SelectMultiple: ImageVector
+    get() {
+      if (_select_multiple != null) return _select_multiple!!
+      _select_multiple = ImageVector.Builder(
+        name = "SelectMultiple",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f,
+      ).apply {
+    addPath(
+      pathData = PathParser().parsePathString("M3 6l2 2 3-3 M3 12l2 2 3-3 M3 18l2 2 3-3").toNodes(),
+      fill = null,
+      stroke = SolidColor(Color.Black),
+      strokeLineWidth = 1.5f,
+      strokeLineCap = StrokeCap.Round,
+      strokeLineJoin = StrokeJoin.Round,
+      pathFillType = PathFillType.NonZero,
+    )
+    addPath(
+      pathData = PathParser().parsePathString("M12 6h9 M12 12h9 M12 18h9").toNodes(),
+      fill = null,
+      stroke = SolidColor(Color.Black),
+      strokeLineWidth = 1.5f,
+      strokeLineCap = StrokeCap.Round,
+      strokeLineJoin = StrokeJoin.Round,
+      pathFillType = PathFillType.NonZero,
+    )
+      }.build()
+      return _select_multiple!!
     }
 
   val ChevronRight: ImageVector

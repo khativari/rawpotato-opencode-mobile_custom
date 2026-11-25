@@ -873,7 +873,7 @@ private fun HomeSessionActions(
         // custom: режим массового выделения.
         OpenCodeBottomSheetEntry(
             title = stringResource(R.string.custom_selection_select),
-            startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.TextSelect),
+            startDecorator = BottomSheetEntryDecorator.Icon(OpenCodeIcons.SelectMultiple),
             onClick = callbacks.onChooseSelect,
         )
         // custom: переключить «прочитано ↔ непрочитано».

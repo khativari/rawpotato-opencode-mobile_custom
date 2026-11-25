@@ -67,16 +67,27 @@ fun ArchivedSessionsScreen(
 ) {
     LaunchedEffect(scopeId) { viewModel.bind(scopeId) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // custom: массовое выделение архивных сессий.
+    val selection by viewModel.selection.collectAsStateWithLifecycle()
     val scopeTitle = uiState.scopeTitle.resolve()
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            OpenCodeTopBar(
-                title = stringResource(R.string.archived_sessions_title),
-                subtitle = scopeTitle,
-                leading = OpenCodeTopBarLeading.Back(onClick = onNavigateBack),
-                showDivider = true,
-            )
+            if (selection.isEmpty()) {
+                OpenCodeTopBar(
+                    title = stringResource(R.string.archived_sessions_title),
+                    subtitle = scopeTitle,
+                    leading = OpenCodeTopBarLeading.Back(onClick = onNavigateBack),
+                    showDivider = true,
+                )
+            } else {
+                dev.opencode.mobile.custom.selection.ArchivedSelectionTopBar(
+                    count = selection.size,
+                    onUnarchive = viewModel::unarchiveSelected,
+                    onDelete = viewModel::deleteSelected,
+                    onClose = viewModel::clearSelection,
+                )
+            }
             OpenCodeReadableColumn(modifier = Modifier.weight(1f)) {
                 when (val content = uiState.content) {
                     ArchivedSessionsContent.Loading ->
@@ -116,7 +127,15 @@ fun ArchivedSessionsScreen(
                         } else {
                             ArchivedSessionsList(
                                 sections = content.sections,
-                                onRowClick = viewModel::openActions,
+                                selectedIds = selection,
+                                onRowClick = { row ->
+                                    if (selection.isEmpty()) {
+                                        viewModel.openActions(row)
+                                    } else {
+                                        viewModel.toggleSelection(row.id)
+                                    }
+                                },
+                                onRowLongPress = { row -> viewModel.toggleSelection(row.id) },
                             )
                         }
                 }
@@ -177,6 +196,8 @@ private fun CenteredEmptyState(content: @Composable () -> Unit) {
 private fun ArchivedSessionsList(
     sections: List<ArchivedSessionSection>,
     onRowClick: (ArchivedSessionRow) -> Unit,
+    selectedIds: Set<String> = emptySet(),
+    onRowLongPress: ((ArchivedSessionRow) -> Unit)? = null,
 ) {
     val rowStyle = HomeDisplayPreferences.sessionRowStyle
     LazyColumn(
@@ -200,9 +221,9 @@ private fun ArchivedSessionsList(
                     SessionListRow(
                         session = row.row,
                         showStatusDot = false,
-                        selected = false,
+                        selected = row.id in selectedIds,
                         onSessionSelected = { onRowClick(row) },
-                        onSessionLongPress = { onRowClick(row) },
+                        onSessionLongPress = { onRowLongPress?.invoke(row) ?: onRowClick(row) },
                         rowStyle = rowStyle,
                         showsStatus = false,
                     )
