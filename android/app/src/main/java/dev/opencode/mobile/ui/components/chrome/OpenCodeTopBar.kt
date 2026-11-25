@@ -444,10 +444,14 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                             Modifier
                                 // custom: как в списке сессий — точка сидит на границе кружка,
                                 // 13 часов, с обводкой цветом фона, чтобы читалась отдельно.
+                                // Геометрия списка: бейдж 32 dp, точка 10 dp, центр на границе
+                                // (расстояние от центра кружка = радиус). Здесь круг 40 dp,
+                                // поэтому точка стоит по TopEnd без смещения.
                                 .align(Alignment.TopEnd)
-                                .offset(x = 1.dp, y = (-1).dp)
-                                .size(10.dp)
-                                .border(2.dp, openCodeColor("background-base"), CircleShape)
+                                // Пропорция списка: точка 10 dp при бейдже 32 dp → здесь
+                                // 12.5 dp при кнопке 40 dp, обводка 2.5 dp.
+                                .size(12.5.dp)
+                                .border(2.5.dp, openCodeColor("background-base"), CircleShape)
                                 .background(openCodeColor("success"), CircleShape),
                     )
                 }

@@ -452,6 +452,10 @@ class SessionChatViewModel
         private val _otherSessionsUnread = MutableStateFlow(false)
         val otherSessionsUnread: kotlinx.coroutines.flow.StateFlow<Boolean> = _otherSessionsUnread.asStateFlow()
 
+        /** custom: диагностика — сколько чужих сессий считается непрочитанными и по какой причине. */
+        private val _otherUnreadDebug = MutableStateFlow("none")
+        val otherUnreadDebug: kotlinx.coroutines.flow.StateFlow<String> = _otherUnreadDebug.asStateFlow()
+
         private fun refreshOtherSessionsUnread() {
             viewModelScope.launch {
                 val current = uiState.value.sessionId
@@ -459,13 +463,31 @@ class SessionChatViewModel
                 val serverKey = activeConnectionManager.current()?.baseUrl.orEmpty()
                 val states = runCatching { readStateStore.observe().first() }.getOrDefault(emptyMap())
                 val sessions = runCatching { sessionRepository.listSessions() }.getOrDefault(emptyList())
+                val reasons =
+                    sessions.filter { it.id != current }.mapNotNull { session ->
+                        val state = states[dev.opencode.mobile.custom.readstate.readStateKey(serverKey, session.id)]
+                        val unread =
+                            dev.opencode.mobile.custom.readstate.SessionUnread.isUnread(
+                                // Как список: только updatedAt, без idle — иначе точка живёт дольше него.
+                                updatedAtEpochMs = session.updatedAtEpochMs,
+                                serverUnread =
+                                    session.idleAtEpochMs != null &&
+                                        (session.viewedAtEpochMs ?: 0L) < session.idleAtEpochMs,
+                                state = state,
+                            )
+                        if (unread) {
+                            "id=${session.id.take(8)} upd=${session.updatedAtEpochMs} idle=${session.idleAtEpochMs} read=${state?.lastReadAtEpochMs} manual=${state?.manuallyUnread}"
+                        } else {
+                            null
+                        }
+                    }
+                _otherUnreadDebug.value = reasons.take(3).joinToString(" | ").ifEmpty { "none" }
                 _otherSessionsUnread.value =
                     sessions.any { session ->
                         session.id != current &&
                             dev.opencode.mobile.custom.readstate.SessionUnread.isUnread(
-                                updatedAtEpochMs =
-                                    maxOf(session.updatedAtEpochMs ?: 0L, session.idleAtEpochMs ?: 0L)
-                                        .takeIf { it > 0L },
+                                // Как список: только updatedAt, без idle — иначе точка живёт дольше него.
+                                updatedAtEpochMs = session.updatedAtEpochMs,
                                 serverUnread =
                                     session.idleAtEpochMs != null &&
                                         (session.viewedAtEpochMs ?: 0L) < session.idleAtEpochMs,
