@@ -9239,6 +9239,7 @@ class SessionChatViewModelTest {
             modelCatalogStore
                 ?: testModelCatalogStore(modelRepository, agentRepository, activeConnectionManager::currentProfile)
         return SessionChatViewModel(
+            readStateStore = dev.opencode.mobile.custom.readstate.InMemoryReadStateStore(),
             messageRepository = repository,
             modelCatalogStore = catalogStore,
             commandRepository = commandRepository,

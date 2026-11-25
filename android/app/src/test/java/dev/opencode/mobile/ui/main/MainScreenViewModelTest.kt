@@ -3291,6 +3291,7 @@ class MainScreenViewModelTest {
                 SessionReadyClock { System.currentTimeMillis() },
             )
         return MainScreenViewModel(
+            readStateStore = dev.opencode.mobile.custom.readstate.InMemoryReadStateStore(),
             projectRepository = projectRepository,
             filesystemRepository = filesystemRepository,
             sessionRepository = sessionRepository,
