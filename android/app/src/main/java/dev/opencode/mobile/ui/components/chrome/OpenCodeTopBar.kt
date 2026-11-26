@@ -442,12 +442,11 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                     Box(
                         modifier =
                             Modifier
-                                // custom: точка на «13 часах», центр ровно на окружности кнопки —
-                                // половина внутри, половина снаружи. 12.5 dp при кнопке 40 dp
-                                // повторяет пропорцию списка (10 dp при бейдже 32 dp).
-                                // Без рамки: обводка на кнопке даёт полутоновой «волосок».
+                                // custom: геометрия из v22 (12.5 dp, обводка 2.5 dp фоном,
+                                // центр на границе), цвет — из темы вместо зелёного success.
                                 .align(Alignment.TopEnd)
                                 .size(12.5.dp)
+                                .border(2.5.dp, openCodeColor("background-base"), CircleShape)
                                 .background(openCodeColor("interactive"), CircleShape),
                     )
                 }
