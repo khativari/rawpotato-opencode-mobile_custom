@@ -442,12 +442,12 @@ private fun LeadingControl(leading: OpenCodeTopBarLeading) {
                     Box(
                         modifier =
                             Modifier
-                                // custom: геометрия из v22 (12.5 dp, обводка 2.5 dp фоном,
-                                // центр на границе), цвет — из темы вместо зелёного success.
+                                // custom: строго как в v22 — 12.5 dp, обводка 2.5 dp фоном,
+                                // центр на границе, зелёный success без привязки к акценту темы.
                                 .align(Alignment.TopEnd)
                                 .size(12.5.dp)
                                 .border(2.5.dp, openCodeColor("background-base"), CircleShape)
-                                .background(openCodeColor("interactive"), CircleShape),
+                                .background(openCodeColor("success"), CircleShape),
                     )
                 }
             }
